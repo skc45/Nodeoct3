@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3 Axis Notes Cube</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <button class="gear-button" id="openSettings" aria-label="Open cube settings">Settings</button>
+
+    <main class="app-shell">
+      <section class="note-panel" aria-labelledby="notePanelTitle">
+        <div>
+          <p class="eyebrow">3 Axis Notes</p>
+          <h1 id="notePanelTitle">Plot ideas in a 0-2 cube</h1>
+          <p class="intro">
+            Add notes with scores from 0 to 2. Each point lands inside one of eight
+            labeled low/high sub-cubes.
+          </p>
+        </div>
+
+        <form id="noteForm" class="note-form">
+          <label>
+            Title
+            <input id="noteTitle" type="text" placeholder="Follow up with design team" required />
+          </label>
+
+          <label>
+            Details
+            <textarea id="noteDetails" rows="4" placeholder="What should you remember?"></textarea>
+          </label>
+
+          <div id="sliderFields" class="slider-fields"></div>
+
+          <button type="submit" class="primary-button">Add note</button>
+        </form>
+
+        <section class="notes-list-wrap" aria-labelledby="notesListTitle">
+          <h2 id="notesListTitle">Plotted notes</h2>
+          <div id="notesList" class="notes-list"></div>
+        </section>
+      </section>
+
+      <section class="cube-panel" aria-label="3D cube visualization">
+        <div class="scene-toolbar">
+          <div>
+            <p class="eyebrow">0-2 coordinate space</p>
+            <h2 id="activeRegion">No note selected</h2>
+          </div>
+          <button id="resetView" type="button" class="ghost-button">Reset view</button>
+        </div>
+        <canvas id="cubeCanvas" width="1100" height="900"></canvas>
+        <p class="canvas-hint">Drag to rotate. Scroll to zoom. Click a sphere to select and aim the camera.</p>
+      </section>
+    </main>
+
+    <dialog id="settingsDialog" class="settings-dialog">
+      <form id="settingsForm" method="dialog">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Cube settings</p>
+            <h2>Name axes and sub-cubes</h2>
+          </div>
+          <button type="button" id="closeSettings" class="icon-button" aria-label="Close settings">Close</button>
+        </div>
+
+        <p class="modal-copy">
+          Sub-cubes are described with each axis name plus low/high. Scores below 1
+          are low; scores from 1 to 2 are high.
+        </p>
+
+        <fieldset class="axis-settings">
+          <legend>Axis names</legend>
+          <label>
+            X axis
+            <input id="axisX" type="text" required />
+          </label>
+          <label>
+            Y axis
+            <input id="axisY" type="text" required />
+          </label>
+          <label>
+            Z axis
+            <input id="axisZ" type="text" required />
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Sub-cube names</legend>
+          <div id="regionSettings" class="region-settings"></div>
+        </fieldset>
+
+        <div class="modal-actions">
+          <button type="button" id="resetLabels" class="ghost-button">Reset labels</button>
+          <button type="submit" class="primary-button">Save settings</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
