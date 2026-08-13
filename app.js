@@ -1,4 +1,6 @@
 const STORAGE_KEY = "three-axis-notes-settings";
+const ASCII_RAMP = " .:-=+*#%@";
+const FILL_CHARS = [".", ":", "~", "+", "=", "*", "#", "%"];
 
 const defaultSettings = {
   axes: ["Urgency", "Impact", "Effort"],
@@ -48,6 +50,10 @@ let pitch = 0.56;
 let zoom = 1;
 let dragState = null;
 let hitTargets = [];
+let cellW = 8;
+let cellH = 14;
+let gridCols = 80;
+let gridRows = 40;
 
 const canvas = document.querySelector("#cubeCanvas");
 const ctx = canvas.getContext("2d");
@@ -257,6 +263,10 @@ function setupCanvasSize() {
   canvas.width = Math.max(1, Math.floor(rect.width * dpr));
   canvas.height = Math.max(1, Math.floor(rect.height * dpr));
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cellH = Math.max(10, Math.min(16, Math.floor(rect.height / 46)));
+  cellW = Math.max(6, Math.floor(cellH * 0.62));
+  gridCols = Math.max(24, Math.floor(rect.width / cellW));
+  gridRows = Math.max(16, Math.floor(rect.height / cellH));
   drawScene();
 }
 
@@ -295,160 +305,312 @@ function project(point) {
   };
 }
 
-function projectFlat(point) {
-  const rect = canvas.getBoundingClientRect();
-  const rotated = rotate(point);
-  const scale = Math.min(rect.width, rect.height) * 0.34 * zoom;
-
+function toCell(point) {
+  const projected = project(point);
   return {
-    x: rect.width / 2 + rotated.x * scale,
-    y: rect.height / 2 - rotated.y * scale,
+    x: projected.x / cellW,
+    y: projected.y / cellH,
+    z: projected.z,
+    perspective: projected.perspective,
   };
+}
+
+function createBuffer() {
+  return {
+    chars: Array.from({ length: gridRows }, () => Array(gridCols).fill(" ")),
+    depths: Array.from({ length: gridRows }, () => Array(gridCols).fill(-Infinity)),
+    colors: Array.from({ length: gridRows }, () => Array(gridCols).fill("#8b9aab")),
+    cols: gridCols,
+    rows: gridRows,
+  };
+}
+
+function plotCell(buf, col, row, ch, depth, color) {
+  if (col < 0 || row < 0 || col >= buf.cols || row >= buf.rows) return;
+  if (depth >= buf.depths[row][col]) {
+    buf.depths[row][col] = depth;
+    buf.chars[row][col] = ch;
+    buf.colors[row][col] = color;
+  }
+}
+
+function shadeChar(z) {
+  const t = (z + 1.6) / 3.2;
+  const index = Math.max(0, Math.min(ASCII_RAMP.length - 1, Math.floor(t * ASCII_RAMP.length)));
+  return ASCII_RAMP[index];
+}
+
+function lineChar(dx, dy) {
+  const ax = Math.abs(dx);
+  const ay = Math.abs(dy);
+  if (ay < ax * 0.35) return "-";
+  if (ax < ay * 0.35) return "|";
+  return Math.sign(dx) === Math.sign(dy) ? "\\" : "/";
+}
+
+function edge(a, b, c) {
+  return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
+}
+
+function fillTriangle(buf, a, b, c, color, ch) {
+  const minX = Math.max(0, Math.floor(Math.min(a.x, b.x, c.x)));
+  const maxX = Math.min(buf.cols - 1, Math.ceil(Math.max(a.x, b.x, c.x)));
+  const minY = Math.max(0, Math.floor(Math.min(a.y, b.y, c.y)));
+  const maxY = Math.min(buf.rows - 1, Math.ceil(Math.max(a.y, b.y, c.y)));
+  const area = edge(a, b, c);
+  if (Math.abs(area) < 0.0001) return;
+
+  for (let row = minY; row <= maxY; row += 1) {
+    for (let col = minX; col <= maxX; col += 1) {
+      const point = { x: col + 0.5, y: row + 0.5 };
+      const w0 = edge(b, c, point) / area;
+      const w1 = edge(c, a, point) / area;
+      const w2 = edge(a, b, point) / area;
+      if (!((w0 >= 0 && w1 >= 0 && w2 >= 0) || (w0 <= 0 && w1 <= 0 && w2 <= 0))) continue;
+      const z = w0 * a.z + w1 * b.z + w2 * c.z;
+      plotCell(buf, col, row, ch || shadeChar(z), z, color);
+    }
+  }
+}
+
+function fillQuad(buf, points, color, ch) {
+  const cells = points.map(toCell);
+  fillTriangle(buf, cells[0], cells[1], cells[2], color, ch);
+  fillTriangle(buf, cells[0], cells[2], cells[3], color, ch);
+}
+
+function drawAsciiLine(buf, start, end, color, depthBias = 0.04) {
+  const a = toCell(start);
+  const b = toCell(end);
+  let x0 = Math.round(a.x);
+  let y0 = Math.round(a.y);
+  const x1 = Math.round(b.x);
+  const y1 = Math.round(b.y);
+  const dx = Math.abs(x1 - x0);
+  const dy = Math.abs(y1 - y0);
+  const sx = x0 < x1 ? 1 : -1;
+  const sy = y0 < y1 ? 1 : -1;
+  let err = dx - dy;
+  const steps = Math.max(dx, dy, 1);
+  const glyph = lineChar(x1 - x0, y1 - y0);
+  let i = 0;
+
+  while (true) {
+    const t = i / steps;
+    const z = a.z + (b.z - a.z) * t + depthBias;
+    const isEnd = (x0 === x1 && y0 === y1) || i === 0;
+    plotCell(buf, x0, y0, isEnd ? "+" : glyph, z, color);
+    if (x0 === x1 && y0 === y1) break;
+    const twiceErr = 2 * err;
+    if (twiceErr > -dy) {
+      err -= dy;
+      x0 += sx;
+    }
+    if (twiceErr < dx) {
+      err += dx;
+      y0 += sy;
+    }
+    i += 1;
+  }
+}
+
+function writeText(buf, text, x, y, color, depth = 8) {
+  const clipped = text.length > 22 ? `${text.slice(0, 21)}.` : text;
+  const start = Math.round(x - clipped.length / 2);
+  const row = Math.round(y);
+  for (let i = 0; i < clipped.length; i += 1) {
+    plotCell(buf, start + i, row, clipped[i], depth, color);
+  }
+}
+
+function blit(buf, rect) {
+  ctx.fillStyle = "#05070a";
+  ctx.fillRect(0, 0, rect.width, rect.height);
+  ctx.font = `${Math.floor(cellH * 0.92)}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+
+  for (let row = 0; row < buf.rows; row += 1) {
+    for (let col = 0; col < buf.cols; col += 1) {
+      const ch = buf.chars[row][col];
+      if (ch === " ") continue;
+      ctx.fillStyle = buf.colors[row][col];
+      ctx.fillText(ch, col * cellW, row * cellH);
+    }
+  }
 }
 
 function drawScene() {
   const rect = canvas.getBoundingClientRect();
-  ctx.clearRect(0, 0, rect.width, rect.height);
   hitTargets = [];
+  const buf = createBuffer();
 
-  drawBackground(rect);
-  drawSubCubes();
-  drawMidPlanes();
-  drawOuterWireframe();
-  drawTicksAndAxes();
-  drawRegionLabels();
-  drawNotes();
+  drawSubCubes(buf);
+  drawMidPlanes(buf);
+  drawOuterWireframe(buf);
+  drawTicksAndAxes(buf);
+  drawRegionLabels(buf);
+  drawNotes(buf);
+  blit(buf, rect);
 }
 
-function drawBackground(rect) {
-  const gradient = ctx.createRadialGradient(rect.width * 0.5, rect.height * 0.45, 20, rect.width * 0.5, rect.height * 0.5, rect.width * 0.65);
-  gradient.addColorStop(0, "rgba(14, 165, 233, 0.16)");
-  gradient.addColorStop(1, "rgba(2, 6, 23, 0)");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, rect.width, rect.height);
-}
-
-function drawSubCubes() {
-  const faces = [];
-
+function drawSubCubes(buf) {
   regionCombos.forEach((combo, regionIndex) => {
     const xRange = combo[0] === "low" ? [0, 1] : [1, 2];
     const yRange = combo[1] === "low" ? [0, 1] : [1, 2];
     const zRange = combo[2] === "low" ? [0, 1] : [1, 2];
-    const color = hexToRgb(regionColors[regionIndex]);
     const points = cuboidPoints(xRange, yRange, zRange);
+    const color = regionColors[regionIndex];
+    const fill = FILL_CHARS[regionIndex];
 
     for (const face of cuboidFaces(points)) {
-      faces.push({
-        points: face,
-        depth: averageDepth(face),
-        fill: `rgba(${color.r}, ${color.g}, ${color.b}, 0.075)`,
-        stroke: `rgba(${color.r}, ${color.g}, ${color.b}, 0.24)`,
-      });
+      fillQuad(buf, face, color, fill);
+    }
+
+    const edges = [
+      ["000", "200"],
+      ["200", "220"],
+      ["220", "020"],
+      ["020", "000"],
+      ["002", "202"],
+      ["202", "222"],
+      ["222", "022"],
+      ["022", "002"],
+      ["000", "002"],
+      ["200", "202"],
+      ["220", "222"],
+      ["020", "022"],
+    ];
+    const [x0, x1] = xRange;
+    const [y0, y1] = yRange;
+    const [z0, z1] = zRange;
+    const named = {
+      "000": points[`${x0}${y0}${z0}`],
+      "200": points[`${x1}${y0}${z0}`],
+      "220": points[`${x1}${y1}${z0}`],
+      "020": points[`${x0}${y1}${z0}`],
+      "002": points[`${x0}${y0}${z1}`],
+      "202": points[`${x1}${y0}${z1}`],
+      "222": points[`${x1}${y1}${z1}`],
+      "022": points[`${x0}${y1}${z1}`],
+    };
+    for (const [a, b] of edges) {
+      drawAsciiLine(buf, named[a], named[b], color, 0.03);
     }
   });
-
-  faces.sort((a, b) => a.depth - b.depth);
-  for (const face of faces) {
-    drawPolygon(face.points, face.fill, face.stroke);
-  }
 }
 
-function drawMidPlanes() {
+function drawMidPlanes(buf) {
   const planes = [
-    [{ x: 1, y: 0, z: 0 }, { x: 1, y: 2, z: 0 }, { x: 1, y: 2, z: 2 }, { x: 1, y: 0, z: 2 }],
-    [{ x: 0, y: 1, z: 0 }, { x: 2, y: 1, z: 0 }, { x: 2, y: 1, z: 2 }, { x: 0, y: 1, z: 2 }],
-    [{ x: 0, y: 0, z: 1 }, { x: 2, y: 0, z: 1 }, { x: 2, y: 2, z: 1 }, { x: 0, y: 2, z: 1 }],
+    [
+      { x: 1, y: 0, z: 0 },
+      { x: 1, y: 2, z: 0 },
+      { x: 1, y: 2, z: 2 },
+      { x: 1, y: 0, z: 2 },
+    ],
+    [
+      { x: 0, y: 1, z: 0 },
+      { x: 2, y: 1, z: 0 },
+      { x: 2, y: 1, z: 2 },
+      { x: 0, y: 1, z: 2 },
+    ],
+    [
+      { x: 0, y: 0, z: 1 },
+      { x: 2, y: 0, z: 1 },
+      { x: 2, y: 2, z: 1 },
+      { x: 0, y: 2, z: 1 },
+    ],
   ];
 
   for (const plane of planes) {
-    drawPolygon(plane, "rgba(255, 255, 255, 0.035)", "rgba(255, 255, 255, 0.22)");
+    fillQuad(buf, plane, "#5b6774", ":");
+    drawAsciiLine(buf, plane[0], plane[1], "#9aa7b5", 0.05);
+    drawAsciiLine(buf, plane[1], plane[2], "#9aa7b5", 0.05);
+    drawAsciiLine(buf, plane[2], plane[3], "#9aa7b5", 0.05);
+    drawAsciiLine(buf, plane[3], plane[0], "#9aa7b5", 0.05);
   }
 }
 
-function drawOuterWireframe() {
+function drawOuterWireframe(buf) {
   const corners = cuboidPoints([0, 2], [0, 2], [0, 2]);
   const edges = [
-    ["000", "200"], ["200", "220"], ["220", "020"], ["020", "000"],
-    ["002", "202"], ["202", "222"], ["222", "022"], ["022", "002"],
-    ["000", "002"], ["200", "202"], ["220", "222"], ["020", "022"],
+    ["000", "200"],
+    ["200", "220"],
+    ["220", "020"],
+    ["020", "000"],
+    ["002", "202"],
+    ["202", "222"],
+    ["222", "022"],
+    ["022", "002"],
+    ["000", "002"],
+    ["200", "202"],
+    ["220", "222"],
+    ["020", "022"],
   ];
 
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "rgba(238, 244, 255, 0.78)";
   for (const [a, b] of edges) {
-    drawLine(corners[a], corners[b]);
+    drawAsciiLine(buf, corners[a], corners[b], "#e8eef6", 0.08);
   }
 }
 
-function drawTicksAndAxes() {
+function drawTicksAndAxes(buf) {
   const axes = [
     { name: settings.axes[0], points: [{ x: 0, y: 0, z: 0 }, { x: 2, y: 0, z: 0 }], key: "x" },
     { name: settings.axes[1], points: [{ x: 0, y: 0, z: 0 }, { x: 0, y: 2, z: 0 }], key: "y" },
     { name: settings.axes[2], points: [{ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 2 }], key: "z" },
   ];
 
-  ctx.font = "700 13px Inter, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = "rgba(238, 244, 255, 0.82)";
-
   for (const axis of axes) {
-    ctx.strokeStyle = "rgba(125, 211, 252, 0.52)";
-    ctx.lineWidth = 1.3;
-    drawLine(axis.points[0], axis.points[1]);
-
+    drawAsciiLine(buf, axis.points[0], axis.points[1], "#7dffb3", 0.09);
     for (const tick of [0, 1, 2]) {
       const point = { x: 0, y: 0, z: 0 };
       point[axis.key] = tick;
-      const projected = project(point);
-      drawText(String(tick), projected.x, projected.y + 18, "rgba(238, 244, 255, 0.74)");
+      const cell = toCell(point);
+      writeText(buf, String(tick), cell.x, cell.y + 1.2, "#c5d0dc", 9);
     }
 
     const labelPoint = { ...axis.points[1] };
-    labelPoint[axis.key] += 0.22;
-    const projected = project(labelPoint);
-    drawText(axis.name, projected.x, projected.y, "rgba(125, 211, 252, 0.96)");
+    labelPoint[axis.key] += 0.28;
+    const projected = toCell(labelPoint);
+    writeText(buf, axis.name, projected.x, projected.y, "#7dffb3", 10);
   }
 }
 
-function drawRegionLabels() {
+function drawRegionLabels(buf) {
   regionCombos.forEach((combo, index) => {
     const point = {
       x: combo[0] === "low" ? 0.5 : 1.5,
       y: combo[1] === "low" ? 0.5 : 1.5,
       z: combo[2] === "low" ? 0.5 : 1.5,
     };
-    const projected = projectFlat(point);
-    drawLabel(settings.regions[regionKey(combo)], projected.x, projected.y, regionColors[index]);
+    const cell = toCell(point);
+    writeText(buf, `[${settings.regions[regionKey(combo)]}]`, cell.x, cell.y, regionColors[index], 6);
   });
 }
 
-function drawNotes() {
-  const ordered = [...notes].sort((a, b) => project(a.point).z - project(b.point).z);
+function drawNotes(buf) {
+  const ordered = [...notes].sort((a, b) => toCell(a.point).z - toCell(b.point).z);
 
   for (const note of ordered) {
-    const projected = project(note.point);
+    const cell = toCell(note.point);
     const region = getRegion(note.point);
-    const radius = (note.id === activeNoteId ? 10 : 7) * projected.perspective;
+    const col = Math.round(cell.x);
+    const row = Math.round(cell.y);
+    const selected = note.id === activeNoteId;
+    const glyph = selected ? "@" : "o";
+    plotCell(buf, col, row, glyph, cell.z + 0.2, selected ? "#ffffff" : region.color);
 
-    ctx.beginPath();
-    ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = region.color;
-    ctx.fill();
-    ctx.lineWidth = note.id === activeNoteId ? 4 : 2;
-    ctx.strokeStyle = note.id === activeNoteId ? "#ffffff" : "rgba(255,255,255,0.72)";
-    ctx.stroke();
-
-    if (note.id === activeNoteId) {
-      drawLabel(note.title, projected.x, projected.y - radius - 18, "#ffffff");
+    if (selected) {
+      plotCell(buf, col - 1, row, "[", cell.z + 0.2, "#ffffff");
+      plotCell(buf, col + 1, row, "]", cell.z + 0.2, "#ffffff");
+      writeText(buf, note.title, cell.x, cell.y - 1.4, "#ffffff", 12);
     }
 
     hitTargets.push({
       id: note.id,
-      x: projected.x,
-      y: projected.y,
-      radius: radius + 8,
+      x: col * cellW + cellW / 2,
+      y: row * cellH + cellH / 2,
+      radius: Math.max(cellW, cellH) * 1.6,
     });
   }
 }
@@ -486,73 +648,6 @@ function cuboidFaces(points) {
     [points[`${lowX}${lowY}${lowZ}`], points[`${highX}${lowY}${lowZ}`], points[`${highX}${lowY}${highZ}`], points[`${lowX}${lowY}${highZ}`]],
     [points[`${lowX}${highY}${lowZ}`], points[`${highX}${highY}${lowZ}`], points[`${highX}${highY}${highZ}`], points[`${lowX}${highY}${highZ}`]],
   ];
-}
-
-function averageDepth(points) {
-  return points.reduce((sum, point) => sum + project(point).z, 0) / points.length;
-}
-
-function drawPolygon(points, fill, stroke) {
-  const projected = points.map(project);
-  ctx.beginPath();
-  ctx.moveTo(projected[0].x, projected[0].y);
-  for (const point of projected.slice(1)) {
-    ctx.lineTo(point.x, point.y);
-  }
-  ctx.closePath();
-  ctx.fillStyle = fill;
-  ctx.fill();
-  ctx.strokeStyle = stroke;
-  ctx.lineWidth = 1;
-  ctx.stroke();
-}
-
-function drawLine(a, b) {
-  const start = project(a);
-  const end = project(b);
-  ctx.beginPath();
-  ctx.moveTo(start.x, start.y);
-  ctx.lineTo(end.x, end.y);
-  ctx.stroke();
-}
-
-function drawText(text, x, y, fill) {
-  ctx.fillStyle = fill;
-  ctx.fillText(text, x, y);
-}
-
-function drawLabel(text, x, y, color) {
-  ctx.font = "800 12px Inter, sans-serif";
-  const paddingX = 8;
-  const width = ctx.measureText(text).width + paddingX * 2;
-  const height = 24;
-
-  ctx.fillStyle = "rgba(2, 6, 23, 0.72)";
-  roundRect(x - width / 2, y - height / 2, width, height, 10);
-  ctx.fill();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  drawText(text, x, y + 1, "#eef4ff");
-}
-
-function roundRect(x, y, width, height, radius) {
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.arcTo(x + width, y, x + width, y + height, radius);
-  ctx.arcTo(x + width, y + height, x, y + height, radius);
-  ctx.arcTo(x, y + height, x, y, radius);
-  ctx.arcTo(x, y, x + width, y, radius);
-  ctx.closePath();
-}
-
-function hexToRgb(hex) {
-  const value = hex.replace("#", "");
-  return {
-    r: parseInt(value.slice(0, 2), 16),
-    g: parseInt(value.slice(2, 4), 16),
-    b: parseInt(value.slice(4, 6), 16),
-  };
 }
 
 function openSettingsDialog() {
