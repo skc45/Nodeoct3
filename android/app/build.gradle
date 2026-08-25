@@ -1,0 +1,56 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "com.skc45.nodeoct3"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.skc45.nodeoct3"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation "androidx.appcompat:appcompat:1.7.0"
+    implementation "androidx.webkit:webkit:1.11.0"
+}
+
+configurations.configureEach {
+    resolutionStrategy {
+        force "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
+        force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22"
+        force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22"
+    }
+}
+
+def webFiles = ["index.html", "styles.css", "app.js"]
+def assetsDir = file("src/main/assets")
+
+tasks.register("copyWebAssets", Copy) {
+    description = "Copy the ASCII cube web app into Android assets."
+    from(rootProject.projectDir.parentFile)
+    include(webFiles as String[])
+    into(assetsDir)
+}
+
+tasks.named("preBuild").configure { dependsOn("copyWebAssets") }

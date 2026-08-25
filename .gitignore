@@ -1,0 +1,11 @@
+.DS_Store
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/captures/
+android/*.iml
+android/.idea/
+android/app/src/main/assets/index.html
+android/app/src/main/assets/styles.css
+android/app/src/main/assets/app.js
