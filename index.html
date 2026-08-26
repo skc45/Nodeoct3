@@ -3,20 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>3 Axis Notes Cube // ASCII</title>
+    <title>3 Axis Notes Burger // ASCII</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <button class="gear-button" id="openSettings" aria-label="Open cube settings">[ SETTINGS ]</button>
+    <button class="gear-button" id="openSettings" aria-label="Open burger settings">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
 
     <main class="app-shell">
       <section class="note-panel" aria-labelledby="notePanelTitle">
         <div>
-          <p class="eyebrow">3 Axis Notes // ASCII</p>
-          <h1 id="notePanelTitle">Plot ideas in a 0-2 cube</h1>
+          <p class="eyebrow">3 Axis Notes // ASCII Burger</p>
+          <h1 id="notePanelTitle">Plot ideas on a 0-2 burger</h1>
           <p class="intro">
-            Add notes with scores from 0 to 2. Each point lands inside one of eight
-            labeled low/high sub-cubes, drawn as a rotatable ASCII wireframe.
+            Add notes with scores from 0 to 2. Each point lands in the bun-to-bun
+            stack, inside one of eight labeled low/high octants.
           </p>
         </div>
 
@@ -42,10 +46,10 @@
         </section>
       </section>
 
-      <section class="cube-panel" aria-label="ASCII cube visualization">
+      <section class="cube-panel" aria-label="ASCII burger visualization">
         <div class="scene-toolbar">
           <div>
-            <p class="eyebrow">0-2 coordinate space</p>
+            <p class="eyebrow">0-2 burger space</p>
             <h2 id="activeRegion">No note selected</h2>
           </div>
           <button id="resetView" type="button" class="ghost-button">[ RESET VIEW ]</button>
@@ -59,15 +63,15 @@
       <form id="settingsForm" method="dialog">
         <div class="modal-header">
           <div>
-            <p class="eyebrow">Cube settings</p>
-            <h2>Name axes and sub-cubes</h2>
+            <p class="eyebrow">Burger settings</p>
+            <h2>Name axes and octants</h2>
           </div>
           <button type="button" id="closeSettings" class="icon-button" aria-label="Close settings">[ CLOSE ]</button>
         </div>
 
         <p class="modal-copy">
-          Sub-cubes are described with each axis name plus low/high. Scores below 1
-          are low; scores from 1 to 2 are high.
+          Octants are described with each axis name plus low/high. Scores below 1
+          are low; scores from 1 to 2 are high. The burger stacks along Y.
         </p>
 
         <fieldset class="axis-settings">
@@ -87,7 +91,7 @@
         </fieldset>
 
         <fieldset>
-          <legend>Sub-cube names</legend>
+          <legend>Octant names</legend>
           <div id="regionSettings" class="region-settings"></div>
         </fieldset>
 

@@ -1,6 +1,26 @@
 const STORAGE_KEY = "three-axis-notes-settings";
-const ASCII_RAMP = " .:-=+*#%@";
-const FILL_CHARS = [".", ":", "~", "+", "=", "*", "#", "%"];
+const BURGER_CENTER = { x: 1, z: 1 };
+const BURGER_SEGMENTS = 18;
+const BURGER_LAYERS = [
+  { name: "plate", y0: -0.04, y1: 0.02, radius: 1.12, color: "#9aa7b5", fill: "-", plate: true },
+  { name: "bottom bun", y0: 0.02, y1: 0.38, radius: 0.94, color: "#d9a441", fill: "O" },
+  { name: "patty", y0: 0.38, y1: 0.64, radius: 0.82, color: "#6b3319", fill: "#" },
+  { name: "cheese", y0: 0.64, y1: 0.8, radius: 0.93, color: "#ffcc33", fill: "=" },
+  { name: "lettuce", y0: 0.8, y1: 1.04, radius: 0.9, color: "#7dff6b", fill: "~", wavy: true },
+  { name: "tomato", y0: 1.04, y1: 1.28, radius: 0.78, color: "#e63946", fill: "o" },
+  { name: "top bun", y0: 1.28, y1: 2.0, radius: 0.94, color: "#e8b86d", fill: "@", dome: true, sesame: true },
+];
+
+const SESAME_SEEDS = [
+  [0.18, 0.08],
+  [-0.16, 0.14],
+  [0.04, -0.2],
+  [-0.22, -0.08],
+  [0.26, -0.12],
+  [-0.06, 0.24],
+  [0.12, 0.22],
+  [-0.28, 0.04],
+];
 
 const defaultSettings = {
   axes: ["Urgency", "Impact", "Effort"],
@@ -45,8 +65,8 @@ let settings = loadSettings();
 let notes = [];
 let activeNoteId = null;
 let nextNoteId = 1;
-let yaw = -0.72;
-let pitch = 0.56;
+let yaw = -0.9;
+let pitch = 0.38;
 let zoom = 1;
 let dragState = null;
 let hitTargets = [];
@@ -154,7 +174,7 @@ function renderSettingsForm() {
     row.innerHTML = `
       <p data-region-description="${key}">${regionDescriptor(combo)}</p>
       <label>
-        Sub-cube label
+        Octant label
         <input type="text" name="${key}" value="${settings.regions[key]}" data-region-key="${key}" />
       </label>
     `;
@@ -445,111 +465,82 @@ function drawScene() {
   hitTargets = [];
   const buf = createBuffer();
 
-  drawSubCubes(buf);
-  drawMidPlanes(buf);
-  drawOuterWireframe(buf);
+  drawBurger(buf);
   drawTicksAndAxes(buf);
-  drawRegionLabels(buf);
+  drawLayerLabels(buf);
   drawNotes(buf);
   blit(buf, rect);
 }
 
-function drawSubCubes(buf) {
-  regionCombos.forEach((combo, regionIndex) => {
-    const xRange = combo[0] === "low" ? [0, 1] : [1, 2];
-    const yRange = combo[1] === "low" ? [0, 1] : [1, 2];
-    const zRange = combo[2] === "low" ? [0, 1] : [1, 2];
-    const points = cuboidPoints(xRange, yRange, zRange);
-    const color = regionColors[regionIndex];
-    const fill = FILL_CHARS[regionIndex];
-
-    for (const face of cuboidFaces(points)) {
-      fillQuad(buf, face, color, fill);
-    }
-
-    const edges = [
-      ["000", "200"],
-      ["200", "220"],
-      ["220", "020"],
-      ["020", "000"],
-      ["002", "202"],
-      ["202", "222"],
-      ["222", "022"],
-      ["022", "002"],
-      ["000", "002"],
-      ["200", "202"],
-      ["220", "222"],
-      ["020", "022"],
-    ];
-    const [x0, x1] = xRange;
-    const [y0, y1] = yRange;
-    const [z0, z1] = zRange;
-    const named = {
-      "000": points[`${x0}${y0}${z0}`],
-      "200": points[`${x1}${y0}${z0}`],
-      "220": points[`${x1}${y1}${z0}`],
-      "020": points[`${x0}${y1}${z0}`],
-      "002": points[`${x0}${y0}${z1}`],
-      "202": points[`${x1}${y0}${z1}`],
-      "222": points[`${x1}${y1}${z1}`],
-      "022": points[`${x0}${y1}${z1}`],
-    };
-    for (const [a, b] of edges) {
-      drawAsciiLine(buf, named[a], named[b], color, 0.03);
-    }
-  });
+function burgerPoint(angle, radius, y) {
+  return {
+    x: BURGER_CENTER.x + Math.cos(angle) * radius,
+    y,
+    z: BURGER_CENTER.z + Math.sin(angle) * radius,
+  };
 }
 
-function drawMidPlanes(buf) {
-  const planes = [
-    [
-      { x: 1, y: 0, z: 0 },
-      { x: 1, y: 2, z: 0 },
-      { x: 1, y: 2, z: 2 },
-      { x: 1, y: 0, z: 2 },
-    ],
-    [
-      { x: 0, y: 1, z: 0 },
-      { x: 2, y: 1, z: 0 },
-      { x: 2, y: 1, z: 2 },
-      { x: 0, y: 1, z: 2 },
-    ],
-    [
-      { x: 0, y: 0, z: 1 },
-      { x: 2, y: 0, z: 1 },
-      { x: 2, y: 2, z: 1 },
-      { x: 0, y: 2, z: 1 },
-    ],
-  ];
+function layerRadius(layer, angle) {
+  if (!layer.wavy) return layer.radius;
+  return layer.radius + 0.07 * Math.sin(angle * 6);
+}
 
-  for (const plane of planes) {
-    fillQuad(buf, plane, "#5b6774", ":");
-    drawAsciiLine(buf, plane[0], plane[1], "#9aa7b5", 0.05);
-    drawAsciiLine(buf, plane[1], plane[2], "#9aa7b5", 0.05);
-    drawAsciiLine(buf, plane[2], plane[3], "#9aa7b5", 0.05);
-    drawAsciiLine(buf, plane[3], plane[0], "#9aa7b5", 0.05);
+function fillDisc(buf, y, radius, color, fill) {
+  const center = { x: BURGER_CENTER.x, y, z: BURGER_CENTER.z };
+  for (let i = 0; i < BURGER_SEGMENTS; i += 1) {
+    const a0 = (i / BURGER_SEGMENTS) * Math.PI * 2;
+    const a1 = ((i + 1) / BURGER_SEGMENTS) * Math.PI * 2;
+    fillQuad(buf, [center, burgerPoint(a0, radius, y), burgerPoint(a1, radius, y), center], color, fill);
   }
 }
 
-function drawOuterWireframe(buf) {
-  const corners = cuboidPoints([0, 2], [0, 2], [0, 2]);
-  const edges = [
-    ["000", "200"],
-    ["200", "220"],
-    ["220", "020"],
-    ["020", "000"],
-    ["002", "202"],
-    ["202", "222"],
-    ["222", "022"],
-    ["022", "002"],
-    ["000", "002"],
-    ["200", "202"],
-    ["220", "222"],
-    ["020", "022"],
-  ];
+function drawBurger(buf) {
+  for (const layer of BURGER_LAYERS) {
+    const rings = layer.dome ? 4 : 1;
+    for (let ring = 0; ring < rings; ring += 1) {
+      const t0 = ring / rings;
+      const t1 = (ring + 1) / rings;
+      const y0 = layer.y0 + (layer.y1 - layer.y0) * t0;
+      const y1 = layer.y0 + (layer.y1 - layer.y0) * t1;
+      const r0 = layer.dome ? layer.radius * Math.cos(t0 * Math.PI * 0.48) : layer.radius;
+      const r1 = layer.dome ? layer.radius * Math.cos(t1 * Math.PI * 0.48) : layer.radius;
 
-  for (const [a, b] of edges) {
-    drawAsciiLine(buf, corners[a], corners[b], "#e8eef6", 0.08);
+      for (let i = 0; i < BURGER_SEGMENTS; i += 1) {
+        const a0 = (i / BURGER_SEGMENTS) * Math.PI * 2;
+        const a1 = ((i + 1) / BURGER_SEGMENTS) * Math.PI * 2;
+        const p00 = burgerPoint(a0, layer.wavy ? layerRadius(layer, a0) : r0, y0);
+        const p10 = burgerPoint(a1, layer.wavy ? layerRadius(layer, a1) : r0, y0);
+        const p01 = burgerPoint(a0, layer.wavy ? layerRadius(layer, a0) : r1, y1);
+        const p11 = burgerPoint(a1, layer.wavy ? layerRadius(layer, a1) : r1, y1);
+        fillQuad(buf, [p00, p10, p11, p01], layer.color, layer.fill);
+        drawAsciiLine(buf, p00, p10, layer.color, 0.05);
+        drawAsciiLine(buf, p01, p11, layer.color, 0.05);
+      }
+    }
+
+    fillDisc(buf, layer.y0, layer.radius, layer.color, layer.fill);
+    fillDisc(buf, layer.y1, layer.dome ? layer.radius * 0.28 : layer.radius, layer.color, layer.fill);
+
+    if (layer.sesame) {
+      for (const [dx, dz] of SESAME_SEEDS) {
+        const seed = { x: BURGER_CENTER.x + dx, y: layer.y1 - 0.06, z: BURGER_CENTER.z + dz };
+        const cell = toCell(seed);
+        plotCell(buf, Math.round(cell.x), Math.round(cell.y), "*", cell.z + 0.12, "#fff4c8");
+      }
+    }
+  }
+}
+
+function drawLayerLabels(buf) {
+  for (const layer of BURGER_LAYERS) {
+    if (layer.plate) continue;
+    const point = {
+      x: BURGER_CENTER.x + layer.radius + 0.22,
+      y: (layer.y0 + layer.y1) / 2,
+      z: BURGER_CENTER.z,
+    };
+    const cell = toCell(point);
+    writeText(buf, `[${layer.name}]`, cell.x, cell.y, layer.color, 7);
   }
 }
 
@@ -561,7 +552,7 @@ function drawTicksAndAxes(buf) {
   ];
 
   for (const axis of axes) {
-    drawAsciiLine(buf, axis.points[0], axis.points[1], "#7dffb3", 0.09);
+    drawAsciiLine(buf, axis.points[0], axis.points[1], "#ffc857", 0.09);
     for (const tick of [0, 1, 2]) {
       const point = { x: 0, y: 0, z: 0 };
       point[axis.key] = tick;
@@ -572,20 +563,8 @@ function drawTicksAndAxes(buf) {
     const labelPoint = { ...axis.points[1] };
     labelPoint[axis.key] += 0.28;
     const projected = toCell(labelPoint);
-    writeText(buf, axis.name, projected.x, projected.y, "#7dffb3", 10);
+    writeText(buf, axis.name, projected.x, projected.y, "#ffc857", 10);
   }
-}
-
-function drawRegionLabels(buf) {
-  regionCombos.forEach((combo, index) => {
-    const point = {
-      x: combo[0] === "low" ? 0.5 : 1.5,
-      y: combo[1] === "low" ? 0.5 : 1.5,
-      z: combo[2] === "low" ? 0.5 : 1.5,
-    };
-    const cell = toCell(point);
-    writeText(buf, `[${settings.regions[regionKey(combo)]}]`, cell.x, cell.y, regionColors[index], 6);
-  });
 }
 
 function drawNotes(buf) {
@@ -613,41 +592,6 @@ function drawNotes(buf) {
       radius: Math.max(cellW, cellH) * 1.6,
     });
   }
-}
-
-function cuboidPoints(xRange, yRange, zRange) {
-  const [x0, x1] = xRange;
-  const [y0, y1] = yRange;
-  const [z0, z1] = zRange;
-  return {
-    [`${x0}${y0}${z0}`]: { x: x0, y: y0, z: z0 },
-    [`${x1}${y0}${z0}`]: { x: x1, y: y0, z: z0 },
-    [`${x1}${y1}${z0}`]: { x: x1, y: y1, z: z0 },
-    [`${x0}${y1}${z0}`]: { x: x0, y: y1, z: z0 },
-    [`${x0}${y0}${z1}`]: { x: x0, y: y0, z: z1 },
-    [`${x1}${y0}${z1}`]: { x: x1, y: y0, z: z1 },
-    [`${x1}${y1}${z1}`]: { x: x1, y: y1, z: z1 },
-    [`${x0}${y1}${z1}`]: { x: x0, y: y1, z: z1 },
-  };
-}
-
-function cuboidFaces(points) {
-  const keys = Object.keys(points);
-  const lowX = Math.min(...keys.map((key) => Number(key[0])));
-  const highX = Math.max(...keys.map((key) => Number(key[0])));
-  const lowY = Math.min(...keys.map((key) => Number(key[1])));
-  const highY = Math.max(...keys.map((key) => Number(key[1])));
-  const lowZ = Math.min(...keys.map((key) => Number(key[2])));
-  const highZ = Math.max(...keys.map((key) => Number(key[2])));
-
-  return [
-    [points[`${lowX}${lowY}${lowZ}`], points[`${highX}${lowY}${lowZ}`], points[`${highX}${highY}${lowZ}`], points[`${lowX}${highY}${lowZ}`]],
-    [points[`${lowX}${lowY}${highZ}`], points[`${highX}${lowY}${highZ}`], points[`${highX}${highY}${highZ}`], points[`${lowX}${highY}${highZ}`]],
-    [points[`${lowX}${lowY}${lowZ}`], points[`${lowX}${highY}${lowZ}`], points[`${lowX}${highY}${highZ}`], points[`${lowX}${lowY}${highZ}`]],
-    [points[`${highX}${lowY}${lowZ}`], points[`${highX}${highY}${lowZ}`], points[`${highX}${highY}${highZ}`], points[`${highX}${lowY}${highZ}`]],
-    [points[`${lowX}${lowY}${lowZ}`], points[`${highX}${lowY}${lowZ}`], points[`${highX}${lowY}${highZ}`], points[`${lowX}${lowY}${highZ}`]],
-    [points[`${lowX}${highY}${lowZ}`], points[`${highX}${highY}${lowZ}`], points[`${highX}${highY}${highZ}`], points[`${lowX}${highY}${highZ}`]],
-  ];
 }
 
 function openSettingsDialog() {
@@ -707,8 +651,8 @@ resetLabels.addEventListener("click", () => {
   renderSettingsForm();
 });
 resetView.addEventListener("click", () => {
-  yaw = -0.72;
-  pitch = 0.56;
+  yaw = -0.9;
+  pitch = 0.38;
   zoom = 1;
   drawScene();
 });

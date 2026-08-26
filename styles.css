@@ -6,8 +6,8 @@
   --border: #3d4a57;
   --text: #d7e0ea;
   --muted: #8b9aab;
-  --accent: #7dffb3;
-  --accent-strong: #3dff9a;
+  --accent: #ffc857;
+  --accent-strong: #ff9f1c;
   --danger: #ff8a8a;
   --shadow: none;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -47,16 +47,24 @@ button {
   z-index: 20;
   top: calc(1rem + env(safe-area-inset-top, 0px));
   left: calc(1rem + env(safe-area-inset-left, 0px));
-  min-width: 5rem;
+  display: grid;
+  align-content: center;
+  gap: 0.32rem;
+  width: 2.6rem;
+  min-width: 2.6rem;
   height: 2.6rem;
   border: 1px solid var(--accent);
   border-radius: 0;
   color: var(--accent);
   background: var(--panel);
   box-shadow: var(--shadow);
-  padding: 0 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  padding: 0.55rem 0.5rem;
+}
+
+.gear-button span {
+  display: block;
+  height: 2px;
+  background: currentColor;
 }
 
 .app-shell {
@@ -247,7 +255,7 @@ input[type="range"] {
 .ghost-button:hover,
 .icon-button:hover,
 .gear-button:hover {
-  background: rgba(125, 255, 179, 0.08);
+  background: rgba(255, 200, 87, 0.1);
 }
 
 .notes-list-wrap {
@@ -275,7 +283,7 @@ input[type="range"] {
 
 .note-card.is-active {
   border-color: var(--accent);
-  background: rgba(125, 255, 179, 0.08);
+  background: rgba(255, 200, 87, 0.1);
 }
 
 .note-card strong {
