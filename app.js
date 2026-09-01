@@ -158,6 +158,15 @@ const SHAPE_INFO = {
     intro: "Add notes with scores from 0 to 2. Each point lands on the crystal-pedestal figure, inside one of eight labeled low/high octants.",
     space: "0-2 crystal space",
   },
+  mega: {
+    id: "mega",
+    label: "Mega",
+    noun: "mega",
+    title: "Plot ideas on a 0-2 mega figure",
+    eyebrow: "3 Axis Notes // ASCII Mega",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the giant teal figure, inside one of eight labeled low/high octants.",
+    space: "0-2 mega space",
+  },
 };
 
 const defaultSettings = {
@@ -688,6 +697,7 @@ function drawShape(buf) {
     cheetah: drawCheetah,
     lucoa: drawLucoa,
     crystal: drawCrystal,
+    mega: drawMega,
   };
   drawers[currentShape()](buf);
 }
@@ -709,6 +719,7 @@ function drawShapeLabels(buf) {
     cheetah: drawCheetahLabels,
     lucoa: drawLucoaLabels,
     crystal: drawCrystalLabels,
+    mega: drawMegaLabels,
   };
   labels[currentShape()](buf);
 }
@@ -1715,13 +1726,15 @@ function drawRoo(buf) {
   drawBox(buf, 1.58, 1.92, 0.18, 0.62, 1.18, 1.62, rock, "#");
   drawBox(buf, 1.62, 1.9, 0.58, 0.7, 1.22, 1.58, snow, "=");
 
-  stackDiscs(buf, cx, 0.28, 0.58, cz, 0.22, 0.28, tanDark, "O", 5);
-  stackDiscs(buf, cx + 0.08, 0.28, 0.52, cz + 0.02, 0.12, 0.16, cream, "o", 4);
-  fillEllipsoid(buf, cx, 0.58, cz, 0.32, 0.2, 0.28, tan, "O", { bulge: 0.28, highlight: "#e8c48a" });
-  fillEllipsoid(buf, cx, 0.92, cz, 0.26, 0.34, 0.22, tan, "#", { bulge: 0.18 });
-  fillEllipsoid(buf, cx + 0.02, 0.88, cz + 0.1, 0.14, 0.28, 0.1, cream, "+");
-  fillEllipsoid(buf, cx - 0.08, 0.98, cz + 0.16, 0.1, 0.1, 0.08, cream, "o", { highlight: "#fff8ee" });
-  fillEllipsoid(buf, cx + 0.12, 0.98, cz + 0.16, 0.1, 0.1, 0.08, cream, "o", { highlight: "#fff8ee" });
+  stackDiscs(buf, cx, 0.22, 0.58, cz, 0.36, 0.46, tanDark, "O", 5);
+  stackDiscs(buf, cx + 0.1, 0.24, 0.52, cz + 0.04, 0.2, 0.28, cream, "o", 4);
+  fillEllipsoid(buf, cx - 0.22, 0.48, cz + 0.08, 0.38, 0.48, 0.36, tan, "O", { bulge: 0.34, highlight: "#e8c48a" });
+  fillEllipsoid(buf, cx + 0.22, 0.48, cz + 0.08, 0.38, 0.48, 0.36, tan, "O", { bulge: 0.34, highlight: "#e8c48a" });
+  fillEllipsoid(buf, cx, 0.62, cz, 0.58, 0.34, 0.5, tan, "O", { bulge: 0.36, highlight: "#e8c48a" });
+  fillEllipsoid(buf, cx, 1.02, cz + 0.04, 0.46, 0.42, 0.38, tan, "#", { bulge: 0.3, highlight: "#e8c48a" });
+  fillEllipsoid(buf, cx + 0.02, 0.98, cz + 0.16, 0.24, 0.34, 0.16, cream, "+");
+  fillEllipsoid(buf, cx - 0.16, 1.08, cz + 0.22, 0.2, 0.18, 0.16, cream, "o", { highlight: "#fff8ee" });
+  fillEllipsoid(buf, cx + 0.18, 1.08, cz + 0.22, 0.2, 0.18, 0.16, cream, "o", { highlight: "#fff8ee" });
   fillDiscAt(buf, cx - 0.08, 0.98, cz + 0.22, 0.03, pink, "*", 6);
   fillDiscAt(buf, cx + 0.12, 0.98, cz + 0.22, 0.03, pink, "*", 6);
 
@@ -1784,17 +1797,17 @@ function drawWolf(buf) {
   const pink = "#e89aa8";
   const cx = 1;
   const cz = 1.12;
-  const gloss = { highlight: creamHi, bulge: 0.32, uSeg: 24, vSeg: 18, gloss: 0.38, hot: 0.68 };
+  const gloss = { highlight: creamHi, bulge: 0.42, uSeg: 28, vSeg: 20, gloss: 0.34, hot: 0.64 };
 
-  fillEllipsoid(buf, cx - 0.3, 0.86, cz + 0.16, 0.52, 0.5, 0.5, cream, "O", gloss);
-  fillEllipsoid(buf, cx + 0.3, 0.86, cz + 0.16, 0.52, 0.5, 0.5, cream, "O", gloss);
-  fillEllipsoid(buf, cx - 0.48, 0.78, cz - 0.04, 0.2, 0.38, 0.22, black, "#", { bulge: 0.12, highlight: "#3a3a42" });
-  fillEllipsoid(buf, cx + 0.48, 0.78, cz - 0.04, 0.2, 0.38, 0.22, black, "#", { bulge: 0.12, highlight: "#3a3a42" });
+  fillEllipsoid(buf, cx - 0.34, 0.88, cz + 0.18, 0.78, 0.72, 0.68, cream, "O", gloss);
+  fillEllipsoid(buf, cx + 0.34, 0.88, cz + 0.18, 0.78, 0.72, 0.68, cream, "O", gloss);
+  fillEllipsoid(buf, cx - 0.56, 0.72, cz - 0.02, 0.3, 0.52, 0.3, black, "#", { bulge: 0.18, highlight: "#3a3a42" });
+  fillEllipsoid(buf, cx + 0.56, 0.72, cz - 0.02, 0.3, 0.52, 0.3, black, "#", { bulge: 0.18, highlight: "#3a3a42" });
 
-  fillEllipsoid(buf, cx - 0.24, 0.38, cz + 0.06, 0.26, 0.4, 0.26, cream, "O", { ...gloss, bulge: 0.22 });
-  fillEllipsoid(buf, cx + 0.24, 0.38, cz + 0.06, 0.26, 0.4, 0.26, cream, "O", { ...gloss, bulge: 0.22 });
-  fillEllipsoid(buf, cx - 0.24, 0.16, cz + 0.04, 0.22, 0.22, 0.22, charcoal, "#", { bulge: 0.08, highlight: "#4a4a52" });
-  fillEllipsoid(buf, cx + 0.24, 0.16, cz + 0.04, 0.22, 0.22, 0.22, charcoal, "#", { bulge: 0.08, highlight: "#4a4a52" });
+  fillEllipsoid(buf, cx - 0.28, 0.32, cz + 0.08, 0.42, 0.58, 0.4, cream, "O", { ...gloss, bulge: 0.3 });
+  fillEllipsoid(buf, cx + 0.28, 0.32, cz + 0.08, 0.42, 0.58, 0.4, cream, "O", { ...gloss, bulge: 0.3 });
+  fillEllipsoid(buf, cx - 0.28, 0.12, cz + 0.04, 0.32, 0.28, 0.3, charcoal, "#", { bulge: 0.12, highlight: "#4a4a52" });
+  fillEllipsoid(buf, cx + 0.28, 0.12, cz + 0.04, 0.32, 0.28, 0.3, charcoal, "#", { bulge: 0.12, highlight: "#4a4a52" });
 
   fillEllipsoid(buf, cx, 0.58, cz + 0.28, 0.07, 0.1, 0.05, pink, "*");
 
@@ -1858,24 +1871,24 @@ function writeTags(buf, tags) {
 
 function drawAbsol(buf) {
   const white = "#f4f6fa";
-  const gloss = { highlight: "#ffffff", bulge: 0.22, gloss: 0.4, hot: 0.7 };
+  const gloss = { highlight: "#ffffff", bulge: 0.38, uSeg: 28, vSeg: 20, gloss: 0.34, hot: 0.64 };
   const navy = "#1a2744";
   const pink = "#e89aa8";
   fillEllipsoid(buf, 1.72, 1.78, 0.68, 0.18, 0.18, 0.08, "#e8eef8", "*");
   drawBox(buf, 0.06, 0.3, 0.18, 1.42, 0.38, 0.68, "#07090e", "#");
   drawBox(buf, 1.7, 1.94, 0.12, 1.22, 0.32, 0.62, "#07090e", "#");
-  fillEllipsoid(buf, 0.78, 0.28, 1.06, 0.16, 0.22, 0.16, white, "O", gloss);
-  fillEllipsoid(buf, 1.22, 0.28, 1.06, 0.16, 0.22, 0.16, white, "O", gloss);
-  fillDiscAt(buf, 0.72, 0.1, 1.14, 0.08, navy, "#", 8);
-  fillDiscAt(buf, 1.28, 0.1, 1.14, 0.08, navy, "#", 8);
-  fillEllipsoid(buf, 1, 0.86, 1.02, 0.28, 0.32, 0.22, white, "O", gloss);
-  fillEllipsoid(buf, 0.76, 0.6, 1.24, 0.3, 0.36, 0.28, white, "O", gloss);
-  fillEllipsoid(buf, 1.24, 0.6, 1.24, 0.3, 0.36, 0.28, white, "O", gloss);
-  fillDiscAt(buf, 0.76, 0.38, 1.44, 0.07, pink, "*", 8);
-  fillDiscAt(buf, 1.24, 0.38, 1.44, 0.07, pink, "*", 8);
-  fillEllipsoid(buf, 0.62, 0.7, 1.18, 0.1, 0.22, 0.1, white, "#", gloss);
-  fillEllipsoid(buf, 1.38, 0.7, 1.18, 0.1, 0.22, 0.1, white, "#", gloss);
-  fillEllipsoid(buf, 1, 1.22, 1, 0.28, 0.16, 0.2, white, "@", gloss);
+  fillEllipsoid(buf, 0.72, 0.26, 1.08, 0.32, 0.38, 0.3, white, "O", gloss);
+  fillEllipsoid(buf, 1.28, 0.26, 1.08, 0.32, 0.38, 0.3, white, "O", gloss);
+  fillDiscAt(buf, 0.68, 0.08, 1.16, 0.12, navy, "#", 8);
+  fillDiscAt(buf, 1.32, 0.08, 1.16, 0.12, navy, "#", 8);
+  fillEllipsoid(buf, 1, 0.88, 1.04, 0.52, 0.5, 0.4, white, "O", gloss);
+  fillEllipsoid(buf, 0.7, 0.62, 1.28, 0.52, 0.58, 0.48, white, "O", gloss);
+  fillEllipsoid(buf, 1.3, 0.62, 1.28, 0.52, 0.58, 0.48, white, "O", gloss);
+  fillDiscAt(buf, 0.7, 0.36, 1.52, 0.1, pink, "*", 8);
+  fillDiscAt(buf, 1.3, 0.36, 1.52, 0.1, pink, "*", 8);
+  fillEllipsoid(buf, 0.52, 0.72, 1.2, 0.18, 0.36, 0.16, white, "#", gloss);
+  fillEllipsoid(buf, 1.48, 0.72, 1.2, 0.18, 0.36, 0.16, white, "#", gloss);
+  fillEllipsoid(buf, 1, 1.28, 1.02, 0.46, 0.24, 0.32, white, "@", gloss);
   fillEllipsoid(buf, 1.02, 1.48, 1.08, 0.18, 0.16, 0.16, navy, "#");
   fillDiscAt(buf, 0.96, 1.5, 1.22, 0.035, "#e22b2b", "*", 6);
   fillDiscAt(buf, 1.1, 1.5, 1.22, 0.035, "#e22b2b", "*", 6);
@@ -1897,15 +1910,15 @@ function drawAbsolLabels(buf) {
 
 function drawGold(buf) {
   const pale = "#f3e4d6";
-  const gloss = { highlight: "#fff8f0", bulge: 0.3, uSeg: 24, vSeg: 18, gloss: 0.36, hot: 0.66 };
+  const gloss = { highlight: "#fff8f0", bulge: 0.42, uSeg: 28, vSeg: 20, gloss: 0.32, hot: 0.62 };
   const black = "#141418";
   const gold = "#e6c34a";
   const tan = "#c4a06a";
-  fillEllipsoid(buf, 0.7, 0.82, 1.22, 0.5, 0.48, 0.48, pale, "O", gloss);
-  fillEllipsoid(buf, 1.3, 0.82, 1.22, 0.5, 0.48, 0.48, pale, "O", gloss);
-  fillEllipsoid(buf, 0.78, 0.34, 1.1, 0.22, 0.34, 0.22, pale, "O", gloss);
-  fillEllipsoid(buf, 1.22, 0.34, 1.1, 0.22, 0.34, 0.22, pale, "O", gloss);
-  fillEllipsoid(buf, 1, 1.22, 1.02, 0.18, 0.28, 0.14, pale, "O", { bulge: 0.1, highlight: "#fff8f0" });
+  fillEllipsoid(buf, 0.62, 0.82, 1.24, 0.78, 0.7, 0.68, pale, "O", gloss);
+  fillEllipsoid(buf, 1.38, 0.82, 1.24, 0.78, 0.7, 0.68, pale, "O", gloss);
+  fillEllipsoid(buf, 0.72, 0.3, 1.12, 0.4, 0.52, 0.38, pale, "O", gloss);
+  fillEllipsoid(buf, 1.28, 0.3, 1.12, 0.4, 0.52, 0.38, pale, "O", gloss);
+  fillEllipsoid(buf, 1, 1.28, 1.08, 0.38, 0.42, 0.28, pale, "O", { bulge: 0.22, highlight: "#fff8f0" });
   fillDiscAt(buf, 1, 1.48, 1.04, 0.1, black, "=", 10);
   fillEllipsoid(buf, 1.08, 1.62, 1.08, 0.16, 0.14, 0.14, pale, "O", gloss);
   fillEllipsoid(buf, 1.18, 1.82, 1.04, 0.07, 0.12, 0.06, black, "#");
@@ -1915,9 +1928,9 @@ function drawGold(buf) {
   fillEllipsoid(buf, 1.06, 1.7, 1.02, 0.12, 0.1, 0.1, black, "#");
   fillEllipsoid(buf, 1.02, 1.68, 1.14, 0.08, 0.08, 0.06, gold, "*");
   const tail = [
-    { x: 0.52, y: 1.02, z: 0.92, rx: 0.14, ry: 0.12, rz: 0.16, color: black },
-    { x: 0.32, y: 0.88, z: 0.78, rx: 0.2, ry: 0.16, rz: 0.18, color: tan },
-    { x: 0.28, y: 0.58, z: 0.72, rx: 0.22, ry: 0.2, rz: 0.18, color: "#f0e6d4" },
+    { x: 0.48, y: 1.02, z: 0.88, rx: 0.22, ry: 0.18, rz: 0.22, color: black },
+    { x: 0.24, y: 0.84, z: 0.72, rx: 0.28, ry: 0.24, rz: 0.26, color: tan },
+    { x: 0.22, y: 0.48, z: 0.66, rx: 0.32, ry: 0.3, rz: 0.26, color: "#f0e6d4" },
   ];
   for (const p of tail) {
     fillEllipsoid(buf, p.x, p.y, p.z, p.rx, p.ry, p.rz, p.color, p.color === black ? "#" : "O", {
@@ -1941,14 +1954,17 @@ function drawCheetah(buf) {
   const black = "#161616";
   const red = "#d32f2f";
   const yellow = "#f5d000";
+  const gloss = { highlight: "#e0b070", bulge: 0.36, uSeg: 28, vSeg: 20, gloss: 0.34, hot: 0.64 };
   drawBox(buf, 0.12, 1.88, 0.2, 1.9, 0.72, 0.86, yellow, "=");
   drawBox(buf, 0.4, 1.7, 0.55, 1.55, 0.78, 0.88, white, "+");
-  fillEllipsoid(buf, 1, 0.82, 1.08, 0.26, 0.28, 0.2, tan, "O", { bulge: 0.12, highlight: "#e0b070" });
-  fillEllipsoid(buf, 0.78, 1.02, 1.22, 0.22, 0.2, 0.2, white, "O", { highlight: "#ffffff", bulge: 0.2 });
-  fillEllipsoid(buf, 1.22, 1.02, 1.22, 0.22, 0.2, 0.2, white, "O", { highlight: "#ffffff", bulge: 0.2 });
+  fillEllipsoid(buf, 0.68, 0.78, 1.18, 0.62, 0.58, 0.52, tan, "O", gloss);
+  fillEllipsoid(buf, 1.32, 0.78, 1.18, 0.62, 0.58, 0.52, tan, "O", gloss);
+  fillEllipsoid(buf, 1, 0.88, 1.1, 0.48, 0.42, 0.34, tan, "O", gloss);
+  fillEllipsoid(buf, 0.72, 1.08, 1.32, 0.42, 0.36, 0.36, white, "O", { highlight: "#ffffff", bulge: 0.32 });
+  fillEllipsoid(buf, 1.28, 1.08, 1.32, 0.42, 0.36, 0.36, white, "O", { highlight: "#ffffff", bulge: 0.32 });
   drawBox(buf, 0.62, 1.38, 0.88, 1.28, 1.02, 1.18, white, "=");
-  fillEllipsoid(buf, 0.55, 0.7, 1.1, 0.1, 0.22, 0.1, tan, "#");
-  fillEllipsoid(buf, 1.45, 0.7, 1.1, 0.1, 0.22, 0.1, tan, "#");
+  fillEllipsoid(buf, 0.48, 0.62, 1.12, 0.2, 0.38, 0.18, tan, "#", gloss);
+  fillEllipsoid(buf, 1.52, 0.62, 1.12, 0.2, 0.38, 0.18, tan, "#", gloss);
   for (const [x, y] of [
     [0.52, 0.78],
     [0.58, 0.62],
@@ -1982,16 +1998,18 @@ function drawCheetahLabels(buf) {
 
 function drawLucoa(buf) {
   const skin = "#f3d2c2";
-  const gloss = { highlight: "#ffe8dc", bulge: 0.18, gloss: 0.42, hot: 0.72 };
+  const gloss = { highlight: "#ffe8dc", bulge: 0.4, uSeg: 28, vSeg: 20, gloss: 0.32, hot: 0.62 };
   const horn = "#d2b48c";
-  fillEllipsoid(buf, 0.72, 0.92, 1.28, 0.42, 0.38, 0.22, skin, "O", gloss);
-  fillEllipsoid(buf, 1.28, 0.92, 1.28, 0.42, 0.38, 0.22, skin, "O", gloss);
-  fillDiscAt(buf, 0.72, 0.88, 1.46, 0.06, "#e89aa8", "*", 8);
-  fillDiscAt(buf, 1.28, 0.88, 1.46, 0.06, "#e89aa8", "*", 8);
-  fillEllipsoid(buf, 1, 0.42, 1.1, 0.22, 0.28, 0.16, skin, "O", gloss);
-  fillEllipsoid(buf, 1, 1.42, 1.12, 0.18, 0.18, 0.16, skin, "O", gloss);
-  fillDiscAt(buf, 0.92, 1.44, 1.26, 0.04, "#2ecc71", "*", 6);
-  fillDiscAt(buf, 1.1, 1.44, 1.26, 0.04, "#e74c3c", "*", 6);
+  fillEllipsoid(buf, 0.62, 0.38, 1.16, 0.52, 0.48, 0.4, skin, "O", gloss);
+  fillEllipsoid(buf, 1.38, 0.38, 1.16, 0.52, 0.48, 0.4, skin, "O", gloss);
+  fillEllipsoid(buf, 0.64, 0.96, 1.32, 0.72, 0.62, 0.48, skin, "O", gloss);
+  fillEllipsoid(buf, 1.36, 0.96, 1.32, 0.72, 0.62, 0.48, skin, "O", gloss);
+  fillDiscAt(buf, 0.64, 0.9, 1.62, 0.1, "#e89aa8", "*", 8);
+  fillDiscAt(buf, 1.36, 0.9, 1.62, 0.1, "#e89aa8", "*", 8);
+  fillEllipsoid(buf, 1, 0.42, 1.12, 0.42, 0.42, 0.28, skin, "O", gloss);
+  fillEllipsoid(buf, 1, 1.48, 1.14, 0.24, 0.22, 0.2, skin, "O", gloss);
+  fillDiscAt(buf, 0.92, 1.5, 1.3, 0.045, "#2ecc71", "*", 6);
+  fillDiscAt(buf, 1.1, 1.5, 1.3, 0.045, "#e74c3c", "*", 6);
   fillEllipsoid(buf, 0.78, 1.72, 1.04, 0.08, 0.2, 0.08, horn, "#");
   fillEllipsoid(buf, 1.22, 1.72, 1.04, 0.08, 0.2, 0.08, horn, "#");
   fillEllipsoid(buf, 1, 1.58, 0.96, 0.22, 0.16, 0.14, "#f6e58d", "@");
@@ -2015,17 +2033,18 @@ function drawLucoaLabels(buf) {
 
 function drawCrystal(buf) {
   const tan = "#d8a07a";
-  const gloss = { highlight: "#f0c8a8", bulge: 0.16, gloss: 0.4, hot: 0.7 };
+  const gloss = { highlight: "#f0c8a8", bulge: 0.38, uSeg: 28, vSeg: 20, gloss: 0.32, hot: 0.62 };
   const blonde = "#f4d03f";
   drawBox(buf, 0.12, 0.48, 0.55, 0.92, 0.7, 1.28, "#eef1f4", "=");
   drawBox(buf, 1.38, 1.88, 0.18, 1.12, 0.72, 1.32, "#5dade2", "#");
   drawBox(buf, 1.46, 1.8, 0.28, 1.02, 0.8, 1.24, "#85c1e9", "+");
-  fillEllipsoid(buf, 1.05, 0.72, 1.12, 0.22, 0.22, 0.2, tan, "O", gloss);
-  fillEllipsoid(buf, 0.92, 0.42, 1.08, 0.14, 0.28, 0.14, tan, "O", gloss);
-  fillEllipsoid(buf, 1.22, 0.48, 1.08, 0.14, 0.24, 0.14, tan, "O", gloss);
-  fillEllipsoid(buf, 1, 1.12, 1.08, 0.16, 0.26, 0.14, tan, "O", gloss);
-  fillEllipsoid(buf, 0.82, 1.08, 1.18, 0.16, 0.16, 0.16, tan, "O", gloss);
-  fillEllipsoid(buf, 1.18, 1.08, 1.18, 0.16, 0.16, 0.16, tan, "O", gloss);
+  fillEllipsoid(buf, 0.72, 0.72, 1.18, 0.58, 0.52, 0.48, tan, "O", gloss);
+  fillEllipsoid(buf, 1.32, 0.72, 1.18, 0.58, 0.52, 0.48, tan, "O", gloss);
+  fillEllipsoid(buf, 0.86, 0.36, 1.1, 0.32, 0.48, 0.3, tan, "O", gloss);
+  fillEllipsoid(buf, 1.28, 0.4, 1.1, 0.32, 0.44, 0.3, tan, "O", gloss);
+  fillEllipsoid(buf, 1, 1.16, 1.12, 0.36, 0.4, 0.28, tan, "O", gloss);
+  fillEllipsoid(buf, 0.74, 1.12, 1.28, 0.36, 0.32, 0.32, tan, "O", gloss);
+  fillEllipsoid(buf, 1.26, 1.12, 1.28, 0.36, 0.32, 0.32, tan, "O", gloss);
   fillEllipsoid(buf, 1.02, 1.48, 1.1, 0.14, 0.14, 0.14, tan, "O", gloss);
   fillDiscAt(buf, 0.98, 1.5, 1.22, 0.035, "#27ae60", "*", 6);
   fillDiscAt(buf, 1.08, 1.5, 1.22, 0.035, "#27ae60", "*", 6);
@@ -2046,6 +2065,96 @@ function drawCrystalLabels(buf) {
   ]);
 }
 
+function drawMega(buf) {
+  const teal = "#3ec8c4";
+  const tealDark = "#249a96";
+  const tealHi = "#8ef0ea";
+  const white = "#f6faf8";
+  const black = "#141418";
+  const trim = "#2ad4c8";
+  const pink = "#ff6b9d";
+  const wing = "#7c5cbf";
+  const stone = "#8b7a62";
+  const stoneDark = "#5c5040";
+  const skin = "#e8b4a0";
+  const gloss = { highlight: tealHi, bulge: 0.44, uSeg: 28, vSeg: 20, gloss: 0.3, hot: 0.6 };
+  const fur = { ...gloss, highlight: "#fffdf8" };
+
+  drawBox(buf, 0.02, 1.98, 0.0, 0.14, 0.08, 1.92, stoneDark, "#");
+  drawBox(buf, 0.02, 1.98, 0.12, 1.98, 0.04, 0.42, stone, "=");
+  drawBox(buf, 0.02, 0.18, 0.12, 1.7, 0.4, 1.4, stoneDark, "#");
+  drawBox(buf, 1.82, 1.98, 0.12, 1.7, 0.4, 1.4, stoneDark, "#");
+
+  fillEllipsoid(buf, 0.72, 1.18, 0.72, 0.16, 0.22, 0.08, wing, "*", { highlight: "#c4a8f0", bulge: 0.12 });
+  fillEllipsoid(buf, 1.28, 1.18, 0.72, 0.16, 0.22, 0.08, wing, "*", { highlight: "#c4a8f0", bulge: 0.12 });
+
+  const tails = [
+    { x: 0.28, y: 1.42, z: 0.92, rx: 0.14, ry: 0.18, rz: 0.14 },
+    { x: 0.18, y: 1.08, z: 0.98, rx: 0.16, ry: 0.22, rz: 0.16 },
+    { x: 0.22, y: 0.68, z: 1.02, rx: 0.14, ry: 0.22, rz: 0.14 },
+    { x: 0.32, y: 0.32, z: 1.04, rx: 0.12, ry: 0.18, rz: 0.12 },
+    { x: 1.72, y: 1.42, z: 0.92, rx: 0.14, ry: 0.18, rz: 0.14 },
+    { x: 1.82, y: 1.08, z: 0.98, rx: 0.16, ry: 0.22, rz: 0.16 },
+    { x: 1.78, y: 0.68, z: 1.02, rx: 0.14, ry: 0.22, rz: 0.14 },
+    { x: 1.68, y: 0.32, z: 1.04, rx: 0.12, ry: 0.18, rz: 0.12 },
+  ];
+  for (const p of tails) {
+    fillEllipsoid(buf, p.x, p.y, p.z, p.rx, p.ry, p.rz, teal, "@", gloss);
+  }
+  fillEllipsoid(buf, 0.22, 1.52, 0.96, 0.08, 0.06, 0.06, black, "#");
+  fillEllipsoid(buf, 0.22, 1.52, 1.02, 0.05, 0.04, 0.04, pink, "+");
+  fillEllipsoid(buf, 1.78, 1.52, 0.96, 0.08, 0.06, 0.06, black, "#");
+  fillEllipsoid(buf, 1.78, 1.52, 1.02, 0.05, 0.04, 0.04, pink, "+");
+
+  fillEllipsoid(buf, 0.48, 0.34, 1.22, 0.48, 0.58, 0.42, teal, "O", gloss);
+  fillEllipsoid(buf, 1.52, 0.34, 1.22, 0.48, 0.58, 0.42, teal, "O", gloss);
+  fillEllipsoid(buf, 0.48, 0.22, 1.2, 0.42, 0.32, 0.36, black, "#", { bulge: 0.16, highlight: "#3a3a42" });
+  fillEllipsoid(buf, 1.52, 0.22, 1.2, 0.42, 0.32, 0.36, black, "#", { bulge: 0.16, highlight: "#3a3a42" });
+  fillEllipsoid(buf, 0.48, 0.48, 1.38, 0.4, 0.08, 0.34, trim, "=");
+  fillEllipsoid(buf, 1.52, 0.48, 1.38, 0.4, 0.08, 0.34, trim, "=");
+
+  fillEllipsoid(buf, 0.58, 0.78, 1.24, 0.82, 0.7, 0.68, teal, "O", gloss);
+  fillEllipsoid(buf, 1.42, 0.78, 1.24, 0.82, 0.7, 0.68, teal, "O", gloss);
+
+  fillEllipsoid(buf, 1, 1.08, 1.16, 0.42, 0.36, 0.32, teal, "#", gloss);
+  fillEllipsoid(buf, 0.58, 1.22, 1.38, 0.72, 0.62, 0.58, teal, "O", gloss);
+  fillEllipsoid(buf, 1.42, 1.22, 1.38, 0.72, 0.62, 0.58, teal, "O", gloss);
+  fillEllipsoid(buf, 0.6, 1.2, 1.52, 0.48, 0.42, 0.28, white, "O", fur);
+  fillEllipsoid(buf, 1.4, 1.2, 1.52, 0.48, 0.42, 0.28, white, "O", fur);
+
+  fillEllipsoid(buf, 1, 1.38, 1.42, 0.08, 0.28, 0.06, trim, "#");
+  fillEllipsoid(buf, 1, 1.48, 1.18, 0.16, 0.08, 0.12, black, "=");
+
+  fillEllipsoid(buf, 0.28, 1.28, 1.28, 0.16, 0.32, 0.16, teal, "#", gloss);
+  fillEllipsoid(buf, 1.72, 1.28, 1.28, 0.16, 0.32, 0.16, teal, "#", gloss);
+  fillEllipsoid(buf, 0.22, 1.18, 1.42, 0.14, 0.22, 0.14, black, "#");
+  fillEllipsoid(buf, 1.78, 1.18, 1.42, 0.14, 0.22, 0.14, black, "#");
+  writeOnMesh(buf, "01", { x: 0.22, y: 1.28, z: 1.52 }, "#e53935");
+
+  fillEllipsoid(buf, 1, 1.18, 1.62, 0.05, 0.09, 0.04, skin, "o", { highlight: "#f8d0bc", bulge: 0.08 });
+  fillDiscAt(buf, 1, 1.12, 1.66, 0.03, "#c48a70", "*", 5);
+
+  fillEllipsoid(buf, 1, 1.64, 1.12, 0.22, 0.22, 0.2, teal, "O", gloss);
+  fillEllipsoid(buf, 1, 1.62, 1.28, 0.12, 0.1, 0.1, white, "O", fur);
+  fillEllipsoid(buf, 0.82, 1.82, 1.12, 0.1, 0.16, 0.08, teal, "#", gloss);
+  fillEllipsoid(buf, 1.18, 1.82, 1.12, 0.1, 0.16, 0.08, teal, "#", gloss);
+  fillEllipsoid(buf, 0.82, 1.82, 1.16, 0.05, 0.12, 0.04, white, "+");
+  fillEllipsoid(buf, 1.18, 1.82, 1.16, 0.05, 0.12, 0.04, white, "+");
+  fillDiscAt(buf, 0.94, 1.66, 1.3, 0.035, "#1a6e6a", "*", 5);
+  fillDiscAt(buf, 1.08, 1.66, 1.3, 0.035, "#1a6e6a", "*", 5);
+  fillDiscAt(buf, 1, 1.6, 1.34, 0.03, "#111111", "*", 5);
+  fillEllipsoid(buf, 1, 1.72, 1.04, 0.2, 0.12, 0.12, tealDark, "@", gloss);
+}
+
+function drawMegaLabels(buf) {
+  writeTags(buf, [
+    { text: "[tails]", point: { x: 0.22, y: 0.72, z: 1.18 }, color: "#3ec8c4" },
+    { text: "[collar]", point: { x: 1, y: 1.52, z: 1.32 }, color: "#d0d0d6" },
+    { text: "[01]", point: { x: 0.22, y: 1.38, z: 1.58 }, color: "#e53935" },
+    { text: "[stone]", point: { x: 1.7, y: 1.7, z: 0.5 }, color: "#8b7a62" },
+  ]);
+}
+
 const FLAT_X0 = 0.08;
 const FLAT_X1 = 1.92;
 const FLAT_Y0 = 0.04;
@@ -2063,13 +2172,13 @@ const FLAT_SOLIDS = [
   { u: 0.48, v: 0.84, ru: 0.07, rv: 0.045, rz: 0.1, cz: 1.08, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
   { u: 0.57, v: 0.86, ru: 0.1, rv: 0.11, rz: 0.12, cz: 1.08, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
   { u: 0.62, v: 0.96, ru: 0.04, rv: 0.06, rz: 0.06, cz: 1.06, color: "#7a1218", hi: "#c62828", fill: "#", groove: false },
-  { u: 0.7, v: 0.56, ru: 0.18, rv: 0.24, rz: 0.2, cz: 1.1, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
-  { u: 0.66, v: 0.46, ru: 0.12, rv: 0.1, rz: 0.12, cz: 1.08, color: "#2a2a32", hi: "#8c8c98", fill: "o", groove: true },
-  { u: 0.56, v: 0.47, ru: 0.16, rv: 0.07, rz: 0.08, cz: 1.12, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
-  { u: 0.32, v: 0.34, ru: 0.24, rv: 0.3, rz: 0.3, cz: 1.08, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
-  { u: 0.66, v: 0.32, ru: 0.25, rv: 0.32, rz: 0.32, cz: 1.08, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
-  { u: 0.36, v: 0.1, ru: 0.16, rv: 0.16, rz: 0.16, cz: 1.04, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
-  { u: 0.62, v: 0.08, ru: 0.17, rv: 0.16, rz: 0.16, cz: 1.04, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
+  { u: 0.7, v: 0.56, ru: 0.3, rv: 0.38, rz: 0.32, cz: 1.14, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
+  { u: 0.66, v: 0.46, ru: 0.22, rv: 0.18, rz: 0.2, cz: 1.12, color: "#2a2a32", hi: "#8c8c98", fill: "o", groove: true },
+  { u: 0.56, v: 0.47, ru: 0.26, rv: 0.12, rz: 0.14, cz: 1.18, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
+  { u: 0.32, v: 0.34, ru: 0.38, rv: 0.46, rz: 0.44, cz: 1.12, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
+  { u: 0.66, v: 0.32, ru: 0.4, rv: 0.48, rz: 0.46, cz: 1.12, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
+  { u: 0.36, v: 0.1, ru: 0.28, rv: 0.28, rz: 0.26, cz: 1.08, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
+  { u: 0.62, v: 0.08, ru: 0.3, rv: 0.28, rz: 0.26, cz: 1.08, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
   { u: 0.48, v: 0.54, ru: 0.09, rv: 0.15, rz: 0.12, cz: 1.08, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
   { u: 0.46, v: 0.66, ru: 0.11, rv: 0.13, rz: 0.12, cz: 1.08, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
   { u: 0.44, v: 0.78, ru: 0.16, rv: 0.2, rz: 0.1, cz: 1.02, color: "#c62828", hi: "#ff6b6b", fill: "#", groove: false },
