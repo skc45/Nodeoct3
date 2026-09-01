@@ -86,6 +86,15 @@ const SHAPE_INFO = {
     intro: "Add notes with scores from 0 to 2. Each point lands on the silver Toyota flatbed, inside one of eight labeled low/high octants.",
     space: "0-2 truck space",
   },
+  roo: {
+    id: "roo",
+    label: "Roo",
+    noun: "kangaroo",
+    title: "Plot ideas on a 0-2 kangaroo",
+    eyebrow: "3 Axis Notes // ASCII Roo",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the onsen kangaroo, inside one of eight labeled low/high octants.",
+    space: "0-2 kangaroo space",
+  },
 };
 
 const defaultSettings = {
@@ -605,6 +614,7 @@ function drawShape(buf) {
     cart: drawCart,
     drone: drawDrone,
     truck: drawTruck,
+    roo: drawRoo,
   };
   drawers[currentShape()](buf);
 }
@@ -618,6 +628,7 @@ function drawShapeLabels(buf) {
     cart: drawCartLabels,
     drone: drawDroneLabels,
     truck: drawTruckLabels,
+    roo: drawRooLabels,
   };
   labels[currentShape()](buf);
 }
@@ -649,6 +660,13 @@ function fillDiscAt(buf, cx, y, cz, radius, color, fill, segments = 12) {
     const a0 = (i / segments) * Math.PI * 2;
     const a1 = ((i + 1) / segments) * Math.PI * 2;
     fillQuad(buf, [center, ringPoint(a0, radius, y, cx, cz), ringPoint(a1, radius, y, cx, cz), center], color, fill);
+  }
+}
+
+function stackDiscs(buf, cx, y0, y1, cz, r0, r1, color, fill, layers = 6, segments = 10) {
+  for (let i = 0; i < layers; i += 1) {
+    const t = i / Math.max(1, layers - 1);
+    fillDiscAt(buf, cx, y0 + (y1 - y0) * t, cz, r0 + (r1 - r0) * t, color, fill, segments);
   }
 }
 
@@ -1529,6 +1547,102 @@ function drawTruckLabels(buf) {
     { text: "[grille]", point: { x: 0.12, y: 0.7, z: 1.62 }, color: "#d8dde3" },
     { text: "[cab]", point: { x: 0.7, y: 1.22, z: 1.6 }, color: "#c5ccd4" },
     { text: "[bed]", point: { x: 1.5, y: 0.86, z: 1.62 }, color: "#9aa3ad" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function drawRoo(buf) {
+  const tan = "#c48a4a";
+  const tanDark = "#9a6230";
+  const cream = "#f3e6d0";
+  const hair = "#16100c";
+  const water = "#3d6d88";
+  const waterHi = "#7eb3c9";
+  const rock = "#6a6e76";
+  const snow = "#f2f4f6";
+  const pink = "#e8a0a8";
+  const snout = "#2a1c16";
+  const cx = 1.02;
+  const cz = 1.02;
+
+  fillDiscAt(buf, 1, 0.12, 1.05, 0.98, water, "~", 14);
+  fillDiscAt(buf, 1, 0.22, 1.05, 0.9, waterHi, "~", 12);
+  fillDiscAt(buf, 1, 0.32, 1.05, 0.78, water, "o", 12);
+  for (const r of [0.42, 0.58, 0.74]) {
+    for (let i = 0; i < 10; i += 1) {
+      const a = (i / 10) * Math.PI * 2;
+      drawAsciiLine(
+        buf,
+        { x: cx + Math.cos(a) * r, y: 0.34, z: cz + Math.sin(a) * r },
+        { x: cx + Math.cos(a + 0.4) * (r + 0.04), y: 0.34, z: cz + Math.sin(a + 0.4) * (r + 0.04) },
+        "#9ec9dc",
+        0.03,
+      );
+    }
+  }
+
+  drawBox(buf, 1.42, 1.88, 0.28, 0.92, 0.72, 1.42, rock, "#");
+  drawBox(buf, 1.48, 1.86, 0.88, 1.02, 0.78, 1.38, snow, "=");
+  drawBox(buf, 1.58, 1.92, 0.18, 0.62, 1.18, 1.62, rock, "#");
+  drawBox(buf, 1.62, 1.9, 0.58, 0.7, 1.22, 1.58, snow, "=");
+
+  stackDiscs(buf, cx, 0.28, 0.58, cz, 0.22, 0.28, tanDark, "O", 5);
+  stackDiscs(buf, cx + 0.08, 0.28, 0.52, cz + 0.02, 0.12, 0.16, cream, "o", 4);
+  stackDiscs(buf, cx, 0.55, 1.18, cz, 0.26, 0.2, tan, "#", 7);
+  stackDiscs(buf, cx + 0.02, 0.58, 1.12, cz + 0.08, 0.14, 0.11, cream, "+", 6);
+  fillDiscAt(buf, cx - 0.06, 0.96, cz + 0.16, 0.09, cream, "o", 8);
+  fillDiscAt(buf, cx + 0.1, 0.96, cz + 0.16, 0.09, cream, "o", 8);
+  fillDiscAt(buf, cx - 0.06, 0.96, cz + 0.2, 0.03, pink, "*", 6);
+  fillDiscAt(buf, cx + 0.1, 0.96, cz + 0.2, 0.03, pink, "*", 6);
+
+  const hip = { x: cx, y: 0.58, z: cz };
+  const tail = [
+    { x: cx - 0.12, y: 0.62, z: cz - 0.08 },
+    { x: cx - 0.32, y: 0.78, z: cz - 0.18 },
+    { x: cx - 0.48, y: 1.02, z: cz - 0.12 },
+    { x: cx - 0.42, y: 1.22, z: cz + 0.02 },
+    { x: cx - 0.28, y: 1.28, z: cz + 0.12 },
+  ];
+  let prev = hip;
+  const tailR = [0.12, 0.11, 0.09, 0.07, 0.05];
+  for (let i = 0; i < tail.length; i += 1) {
+    drawTube(buf, prev, tail[i], tanDark);
+    fillDiscAt(buf, tail[i].x, tail[i].y, tail[i].z, tailR[i], i > 2 ? cream : tan, "O", 8);
+    prev = tail[i];
+  }
+
+  drawTube(buf, { x: cx + 0.16, y: 1.08, z: cz }, { x: 1.52, y: 0.86, z: 1.22 }, tan);
+  drawTube(buf, { x: 1.52, y: 0.86, z: 1.22 }, { x: 1.62, y: 0.78, z: 1.18 }, tanDark);
+  fillDiscAt(buf, 1.64, 0.76, 1.16, 0.07, tanDark, "#", 6);
+  drawTube(buf, { x: cx - 0.16, y: 1.02, z: cz + 0.04 }, { x: 0.72, y: 0.72, z: 1.18 }, tan);
+  fillDiscAt(buf, 0.7, 0.7, 1.2, 0.07, tanDark, "#", 6);
+
+  stackDiscs(buf, cx, 1.18, 1.52, cz, 0.18, 0.16, tan, "O", 5);
+  fillDiscAt(buf, cx, 1.38, cz + 0.12, 0.12, tan, "O", 8);
+  drawBox(buf, cx - 0.06, cx + 0.06, 1.28, 1.42, cz + 0.12, cz + 0.32, tanDark, "#");
+  fillDiscAt(buf, cx, 1.34, cz + 0.34, 0.05, snout, "*", 6);
+  fillDiscAt(buf, cx - 0.06, 1.42, cz + 0.16, 0.035, "#c41e3a", "*", 5);
+  fillDiscAt(buf, cx + 0.06, 1.42, cz + 0.16, 0.035, "#c41e3a", "*", 5);
+
+  drawBox(buf, cx - 0.2, cx - 0.08, 1.5, 1.86, cz - 0.04, cz + 0.08, tan, "#");
+  drawBox(buf, cx + 0.08, cx + 0.2, 1.5, 1.86, cz - 0.04, cz + 0.08, tan, "#");
+  drawBox(buf, cx - 0.18, cx - 0.1, 1.54, 1.82, cz + 0.04, cz + 0.1, pink, "+");
+  drawBox(buf, cx + 0.1, cx + 0.18, 1.54, 1.82, cz + 0.04, cz + 0.1, pink, "+");
+
+  stackDiscs(buf, cx, 1.48, 1.62, cz - 0.06, 0.17, 0.14, hair, "#", 4);
+  drawBox(buf, cx - 0.16, cx + 0.16, 0.7, 1.5, cz - 0.22, cz - 0.08, hair, "#");
+  drawAsciiLine(buf, { x: cx - 0.12, y: 1.48, z: cz - 0.1 }, { x: cx - 0.2, y: 0.72, z: cz - 0.06 }, hair, 0.08);
+  drawAsciiLine(buf, { x: cx + 0.1, y: 1.48, z: cz - 0.1 }, { x: cx + 0.18, y: 0.7, z: cz - 0.04 }, hair, 0.08);
+}
+
+function drawRooLabels(buf) {
+  const tags = [
+    { text: "[ears]", point: { x: 1.02, y: 1.82, z: 1.18 }, color: "#e8a0a8" },
+    { text: "[tail]", point: { x: 0.48, y: 1.18, z: 0.88 }, color: "#c48a4a" },
+    { text: "[onsen]", point: { x: 1.15, y: 0.22, z: 1.55 }, color: "#7eb3c9" },
   ];
   for (const tag of tags) {
     const cell = toCell(tag.point);
