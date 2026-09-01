@@ -65,7 +65,7 @@ const SHAPE_INFO = {
     noun: "cart",
     title: "Plot ideas on a 0-2 shopping cart",
     eyebrow: "3 Axis Notes // ASCII Cart",
-    intro: "Add notes with scores from 0 to 2. Each point lands in the basket, inside one of eight labeled low/high octants.",
+    intro: "Add notes with scores from 0 to 2. Each point lands in the red grocery cart, inside one of eight labeled low/high octants.",
     space: "0-2 cart space",
   },
   drone: {
@@ -652,6 +652,110 @@ function fillDiscAt(buf, cx, y, cz, radius, color, fill, segments = 12) {
   }
 }
 
+function lerp3(a, b, t) {
+  return {
+    x: a.x + (b.x - a.x) * t,
+    y: a.y + (b.y - a.y) * t,
+    z: a.z + (b.z - a.z) * t,
+  };
+}
+
+function quadPoint(p00, p10, p01, p11, u, v) {
+  return lerp3(lerp3(p00, p10, u), lerp3(p01, p11, u), v);
+}
+
+function cartOvalHole(u, v, cols, rows) {
+  const mu = 0.07;
+  const mv = 0.1;
+  if (u < mu || u > 1 - mu || v < mv || v > 1 - mv) return false;
+  const uu = (u - mu) / (1 - 2 * mu);
+  const vv = (v - mv) / (1 - 2 * mv);
+  const col = Math.min(cols - 1, Math.floor(uu * cols));
+  const row = Math.min(rows - 1, Math.floor(vv * rows));
+  const dx = (uu - (col + 0.5) / cols) * cols;
+  const dy = (vv - (row + 0.5) / rows) * rows;
+  return (dx * dx) / (0.27 * 0.27) + (dy * dy) / (0.4 * 0.4) < 1;
+}
+
+function fillTriangleUV(buf, a, b, c, ua, va, ub, vb, uc, vc, color, ch, holeTest) {
+  const minX = Math.max(0, Math.floor(Math.min(a.x, b.x, c.x)));
+  const maxX = Math.min(buf.cols - 1, Math.ceil(Math.max(a.x, b.x, c.x)));
+  const minY = Math.max(0, Math.floor(Math.min(a.y, b.y, c.y)));
+  const maxY = Math.min(buf.rows - 1, Math.ceil(Math.max(a.y, b.y, c.y)));
+  const area = edge(a, b, c);
+  if (Math.abs(area) < 0.0001) return;
+
+  for (let row = minY; row <= maxY; row += 1) {
+    for (let col = minX; col <= maxX; col += 1) {
+      const point = { x: col + 0.5, y: row + 0.5 };
+      const w0 = edge(b, c, point) / area;
+      const w1 = edge(c, a, point) / area;
+      const w2 = edge(a, b, point) / area;
+      if (!((w0 >= 0 && w1 >= 0 && w2 >= 0) || (w0 <= 0 && w1 <= 0 && w2 <= 0))) continue;
+      const u = w0 * ua + w1 * ub + w2 * uc;
+      const v = w0 * va + w1 * vb + w2 * vc;
+      if (holeTest?.(u, v)) continue;
+      const z = w0 * a.z + w1 * b.z + w2 * c.z;
+      plotCell(buf, col, row, ch || shadeChar(z), z, color);
+    }
+  }
+}
+
+function drawPerforatedQuad(buf, p00, p10, p11, p01, color, fill, cols, rows, holeTest) {
+  const c00 = toCell(p00);
+  const c10 = toCell(p10);
+  const c11 = toCell(p11);
+  const c01 = toCell(p01);
+  const test = holeTest || ((u, v) => cartOvalHole(u, v, cols, rows));
+  fillTriangleUV(buf, c00, c10, c11, 0, 0, 1, 0, 1, 1, color, fill, test);
+  fillTriangleUV(buf, c00, c11, c01, 0, 0, 1, 1, 0, 1, color, fill, test);
+}
+
+function drawTube(buf, start, end, color) {
+  const offsets = [
+    { x: 0, y: 0, z: 0 },
+    { x: 0.045, y: 0.02, z: 0.02 },
+    { x: -0.03, y: 0.035, z: -0.02 },
+    { x: 0.02, y: -0.03, z: 0.03 },
+  ];
+  for (const o of offsets) {
+    drawAsciiLine(
+      buf,
+      { x: start.x + o.x, y: start.y + o.y, z: start.z + o.z },
+      { x: end.x + o.x, y: end.y + o.y, z: end.z + o.z },
+      color,
+      0.1,
+    );
+  }
+}
+
+function drawWheelYZ(buf, x, cy, cz, radius, thickness = 0.08, caster = false) {
+  const tire = "#3a3a3a";
+  const hub = "#9aa3ad";
+  const fork = "#c5cdd4";
+  const segments = 11;
+  for (const ox of [-thickness / 2, thickness / 2]) {
+    const wx = x + ox;
+    const center = { x: wx, y: cy, z: cz };
+    for (let i = 0; i < segments; i += 1) {
+      const a0 = (i / segments) * Math.PI * 2;
+      const a1 = ((i + 1) / segments) * Math.PI * 2;
+      const outer0 = { x: wx, y: cy + Math.cos(a0) * radius, z: cz + Math.sin(a0) * radius };
+      const outer1 = { x: wx, y: cy + Math.cos(a1) * radius, z: cz + Math.sin(a1) * radius };
+      const inner0 = { x: wx, y: cy + Math.cos(a0) * radius * 0.42, z: cz + Math.sin(a0) * radius * 0.42 };
+      const inner1 = { x: wx, y: cy + Math.cos(a1) * radius * 0.42, z: cz + Math.sin(a1) * radius * 0.42 };
+      fillQuad(buf, [outer0, outer1, inner1, inner0], tire, "o");
+      fillQuad(buf, [center, inner0, inner1, center], hub, "*");
+    }
+  }
+  if (caster) {
+    const top = { x, y: cy + radius + 0.18, z: cz };
+    drawTube(buf, { x, y: cy + radius * 0.2, z: cz - radius * 0.55 }, top, fork);
+    drawTube(buf, { x, y: cy + radius * 0.2, z: cz + radius * 0.55 }, top, fork);
+    drawTube(buf, top, { x, y: top.y + 0.08, z: cz }, fork);
+  }
+}
+
 function drawBurger(buf) {
   for (const layer of BURGER_LAYERS) {
     const rings = layer.dome ? 4 : 1;
@@ -852,34 +956,131 @@ function drawHouseLabels(buf) {
 }
 
 function drawCart(buf) {
-  const chrome = "#c5d0dc";
-  drawBox(buf, 0.48, 1.62, 0.36, 0.46, 0.48, 1.48, chrome, "=");
-  drawBox(buf, 0.48, 0.58, 0.46, 1.14, 0.48, 1.48, chrome, "|");
-  drawBox(buf, 1.52, 1.62, 0.46, 1.14, 0.48, 1.48, chrome, "|");
-  drawBox(buf, 0.48, 1.62, 0.46, 1.14, 0.48, 0.58, chrome, "#");
-  drawBox(buf, 0.48, 1.62, 0.46, 1.14, 1.38, 1.48, chrome, "#");
-  for (const x of [0.7, 0.95, 1.2, 1.42]) {
-    drawAsciiLine(buf, { x, y: 0.46, z: 0.55 }, { x, y: 1.1, z: 0.55 }, chrome, 0.04);
-    drawAsciiLine(buf, { x, y: 0.46, z: 1.4 }, { x, y: 1.1, z: 1.4 }, chrome, 0.04);
+  const red = "#ff1f2d";
+  const redDark = "#c41222";
+  const redRim = "#e01424";
+  const steel = "#cfd6dc";
+  const steelDark = "#8b949e";
+
+  const trl = { x: 0.26, y: 1.5, z: 1.44 };
+  const trr = { x: 1.74, y: 1.5, z: 1.44 };
+  const tfl = { x: 0.46, y: 1.22, z: 0.3 };
+  const tfr = { x: 1.54, y: 1.22, z: 0.3 };
+  const brl = { x: 0.38, y: 0.7, z: 1.3 };
+  const brr = { x: 1.62, y: 0.7, z: 1.3 };
+  const bfl = { x: 0.52, y: 0.66, z: 0.4 };
+  const bfr = { x: 1.48, y: 0.66, z: 0.4 };
+
+  const center = { x: 1, y: 1.05, z: 0.88 };
+  const inset = (p, t = 0.07) => lerp3(p, center, t);
+  const itrl = inset(trl);
+  const itrr = inset(trr);
+  const itfl = inset(tfl);
+  const itfr = inset(tfr);
+  const ibrl = inset(brl, 0.1);
+  const ibrr = inset(brr, 0.1);
+  const ibfl = inset(bfl, 0.1);
+  const ibfr = inset(bfr, 0.1);
+
+  const plateFront = (u, v) => v < 0.34 ? false : cartOvalHole(u, v, 5, 3);
+  const plateRear = (u, v) => v < 0.3 ? false : cartOvalHole(u, v, 5, 3);
+
+  drawPerforatedQuad(buf, tfl, trl, brl, bfl, red, "#", 7, 4);
+  drawPerforatedQuad(buf, tfr, trr, brr, bfr, red, "#", 7, 4);
+  drawPerforatedQuad(buf, tfl, tfr, bfr, bfl, red, "#", 5, 4, plateFront);
+  drawPerforatedQuad(buf, trl, trr, brr, brl, redDark, "#", 5, 3, plateRear);
+  drawPerforatedQuad(buf, bfl, bfr, brr, brl, redDark, "#", 5, 4);
+
+  drawPerforatedQuad(buf, itfl, itrl, ibrl, ibfl, redDark, "#", 6, 3);
+  drawPerforatedQuad(buf, itfr, itrr, ibrr, ibfr, redDark, "#", 6, 3);
+  drawPerforatedQuad(buf, itfl, itfr, ibfr, ibfl, redDark, "#", 4, 3);
+  drawPerforatedQuad(buf, itrl, itrr, ibrr, ibrl, redDark, "#", 4, 3);
+
+  fillQuad(buf, [tfl, tfr, lerp3(tfr, bfr, 0.32), lerp3(tfl, bfl, 0.32)], red, "#");
+  fillQuad(buf, [trl, trr, lerp3(trr, brr, 0.28), lerp3(trl, brl, 0.28)], red, "#");
+  fillQuad(buf, [tfl, tfr, itfr, itfl], redRim, "=");
+  fillQuad(buf, [trl, trr, itrr, itrl], redRim, "=");
+  fillQuad(buf, [tfl, trl, itrl, itfl], redRim, "=");
+  fillQuad(buf, [tfr, trr, itrr, itfr], redRim, "=");
+
+  drawTube(buf, tfl, tfr, redRim);
+  drawTube(buf, trl, trr, redRim);
+  drawTube(buf, tfl, trl, redRim);
+  drawTube(buf, tfr, trr, redRim);
+
+  const seatL = lerp3(itrl, itfl, 0.16);
+  const seatR = lerp3(itrr, itfr, 0.16);
+  const seatLB = { x: seatL.x + 0.04, y: 0.86, z: seatL.z - 0.08 };
+  const seatRB = { x: seatR.x - 0.04, y: 0.86, z: seatR.z - 0.08 };
+  for (const t of [0.08, 0.26, 0.44, 0.62, 0.8, 0.92]) {
+    drawAsciiLine(buf, lerp3(seatL, seatR, t), lerp3(seatLB, seatRB, t), steel, 0.05);
   }
-  drawBox(buf, 0.52, 0.62, 0.95, 1.55, 1.42, 1.82, "#ffc857", "|");
-  drawBox(buf, 1.48, 1.58, 0.95, 1.55, 1.42, 1.82, "#ffc857", "|");
-  drawBox(buf, 0.52, 1.58, 1.48, 1.56, 1.72, 1.84, "#ffc857", "=");
-  for (const [x, z] of [
-    [0.58, 0.58],
-    [1.5, 0.58],
-    [0.58, 1.38],
-    [1.5, 1.38],
-  ]) {
-    drawBox(buf, x - 0.1, x + 0.1, 0.02, 0.34, z - 0.1, z + 0.1, "#4a5568", "o");
+  for (const t of [0.05, 0.28, 0.5, 0.72, 0.95]) {
+    drawAsciiLine(buf, lerp3(seatL, seatLB, t), lerp3(seatR, seatRB, t), steel, 0.05);
   }
+  drawAsciiLine(buf, lerp3(seatLB, seatRB, 0.22), { x: 0.78, y: 0.78, z: 1.12 }, steel, 0.04);
+  drawAsciiLine(buf, lerp3(seatLB, seatRB, 0.78), { x: 1.22, y: 0.78, z: 1.12 }, steel, 0.04);
+
+  const handleL = { x: 0.3, y: 1.78, z: 1.8 };
+  const handleR = { x: 1.7, y: 1.78, z: 1.8 };
+  const neckL = { x: 0.28, y: 1.62, z: 1.58 };
+  const neckR = { x: 1.72, y: 1.62, z: 1.58 };
+  drawTube(buf, trl, neckL, steel);
+  drawTube(buf, neckL, handleL, steel);
+  drawTube(buf, trr, neckR, steel);
+  drawTube(buf, neckR, handleR, steel);
+  drawTube(buf, handleL, handleR, steel);
+  const gripL = { x: 0.48, y: 1.74, z: 1.76 };
+  const gripR = { x: 1.52, y: 1.74, z: 1.76 };
+  const gripLB = { x: 0.48, y: 1.84, z: 1.84 };
+  const gripRB = { x: 1.52, y: 1.84, z: 1.84 };
+  fillQuad(buf, [gripL, gripR, gripRB, gripLB], red, "=");
+  fillQuad(
+    buf,
+    [
+      { x: gripL.x, y: gripL.y - 0.05, z: gripL.z },
+      { x: gripR.x, y: gripR.y - 0.05, z: gripR.z },
+      { x: gripRB.x, y: gripRB.y - 0.05, z: gripRB.z },
+      { x: gripLB.x, y: gripLB.y - 0.05, z: gripLB.z },
+    ],
+    redRim,
+    "=",
+  );
+
+  const rearLeft = { x: 0.42, y: 0.2, z: 1.28 };
+  const rearRight = { x: 1.58, y: 0.2, z: 1.28 };
+  const frontLeft = { x: 0.52, y: 0.18, z: 0.42 };
+  const frontRight = { x: 1.48, y: 0.18, z: 0.42 };
+  drawTube(buf, neckL, rearLeft, steelDark);
+  drawTube(buf, neckR, rearRight, steelDark);
+  drawTube(buf, brl, rearLeft, steelDark);
+  drawTube(buf, brr, rearRight, steelDark);
+  drawTube(buf, bfl, frontLeft, steelDark);
+  drawTube(buf, bfr, frontRight, steelDark);
+  drawTube(buf, rearLeft, frontLeft, steel);
+  drawTube(buf, rearRight, frontRight, steel);
+  drawTube(buf, { x: rearLeft.x, y: 0.34, z: rearLeft.z }, { x: frontLeft.x, y: 0.34, z: frontLeft.z }, steel);
+  drawTube(buf, { x: rearRight.x, y: 0.34, z: rearRight.z }, { x: frontRight.x, y: 0.34, z: frontRight.z }, steel);
+  drawTube(buf, { x: rearLeft.x, y: 0.22, z: rearLeft.z }, { x: rearRight.x, y: 0.22, z: rearRight.z }, steel);
+  drawTube(buf, { x: frontLeft.x, y: 0.22, z: frontLeft.z }, { x: frontRight.x, y: 0.22, z: frontRight.z }, steel);
+
+  for (const x of [0.56, 0.74, 0.92, 1.1, 1.28, 1.44]) {
+    drawAsciiLine(buf, { x, y: 0.3, z: 0.46 }, { x, y: 0.3, z: 1.2 }, steel, 0.04);
+  }
+  drawAsciiLine(buf, { x: 0.5, y: 0.3, z: 0.46 }, { x: 1.5, y: 0.3, z: 0.46 }, steel, 0.04);
+  drawAsciiLine(buf, { x: 0.5, y: 0.3, z: 1.2 }, { x: 1.5, y: 0.3, z: 1.2 }, steel, 0.04);
+
+  drawWheelYZ(buf, rearLeft.x, 0.2, rearLeft.z, 0.18, 0.1, false);
+  drawWheelYZ(buf, rearRight.x, 0.2, rearRight.z, 0.18, 0.1, false);
+  drawWheelYZ(buf, frontLeft.x, 0.18, frontLeft.z, 0.16, 0.09, true);
+  drawWheelYZ(buf, frontRight.x, 0.18, frontRight.z, 0.16, 0.09, true);
 }
 
 function drawCartLabels(buf) {
   const tags = [
-    { text: "[basket]", point: { x: 1.05, y: 0.8, z: 1.62 }, color: "#c5d0dc" },
-    { text: "[handle]", point: { x: 1.05, y: 1.62, z: 1.78 }, color: "#ffc857" },
-    { text: "[wheels]", point: { x: 0.55, y: 0.18, z: 0.35 }, color: "#9aa7b5" },
+    { text: "[basket]", point: { x: 1.05, y: 0.98, z: 0.24 }, color: "#ff1f2d" },
+    { text: "[handle]", point: { x: 1.05, y: 1.88, z: 1.86 }, color: "#ff1f2d" },
+    { text: "[rack]", point: { x: 1.05, y: 0.24, z: 0.68 }, color: "#cfd6dc" },
   ];
   for (const tag of tags) {
     const cell = toCell(tag.point);
