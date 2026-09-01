@@ -104,6 +104,15 @@ const SHAPE_INFO = {
     intro: "Add notes with scores from 0 to 2. Each point lands on the wolf figure, inside one of eight labeled low/high octants.",
     space: "0-2 wolf space",
   },
+  flat: {
+    id: "flat",
+    label: "Flat",
+    noun: "flat",
+    title: "Plot ideas on a 0-2 flat",
+    eyebrow: "3 Axis Notes // ASCII Flat",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the night-scene figure, inside one of eight labeled low/high octants.",
+    space: "0-2 flat space",
+  },
 };
 
 const defaultSettings = {
@@ -625,6 +634,7 @@ function drawShape(buf) {
     truck: drawTruck,
     roo: drawRoo,
     wolf: drawWolf,
+    flat: drawFlat,
   };
   drawers[currentShape()](buf);
 }
@@ -640,6 +650,7 @@ function drawShapeLabels(buf) {
     truck: drawTruckLabels,
     roo: drawRooLabels,
     wolf: drawWolfLabels,
+    flat: drawFlatLabels,
   };
   labels[currentShape()](buf);
 }
@@ -1773,6 +1784,152 @@ function drawWolfLabels(buf) {
     { text: "[hips]", point: { x: 1, y: 1.02, z: 1.62 }, color: "#f4ebe3" },
     { text: "[tail]", point: { x: 1.72, y: 0.88, z: 0.58 }, color: "#d0d0d6" },
     { text: "[thighs]", point: { x: 0.48, y: 0.22, z: 1.32 }, color: "#f4ebe3" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function ell2(u, v, cx, cy, rx, ry) {
+  const dx = (u - cx) / rx;
+  const dy = (v - cy) / ry;
+  return dx * dx + dy * dy;
+}
+
+function sampleNightFlat(u, v) {
+  const sky = { color: "#0a1428", fill: "." };
+  const forest = { color: "#05070c", fill: "#" };
+  const moon = { color: "#f4f7ff", fill: "*" };
+  const moonGlow = { color: "#9bb4d8", fill: "o" };
+  const body = { color: "#2a2a32", fill: "O" };
+  const bodyHi = { color: "#9a9aa6", fill: "*" };
+  const bodyMid = { color: "#5a5a66", fill: "o" };
+  const mane = { color: "#c62828", fill: "#" };
+  const maneDeep = { color: "#7a1218", fill: "#" };
+  const maneTip = { color: "#0c0c10", fill: "#" };
+  const eye = { color: "#5ad2ff", fill: "*" };
+  const orb = { color: "#3ec6ff", fill: "*" };
+  const claw = { color: "#d32f2f", fill: "A" };
+
+  const shadeBody = (cx, cy, d) => {
+    const lit = (u - cx) * 0.55 + (v - cy) * 0.9;
+    if (d < 0.16 && lit > 0.1) return bodyHi;
+    if (lit > 0.06 && d < 0.72) return bodyMid;
+    return body;
+  };
+
+  const dEye = ell2(u, v, 0.52, 0.88, 0.028, 0.022);
+  if (dEye <= 1) return eye;
+
+  const dOrb = ell2(u, v, 0.5, 0.2, 0.045, 0.04);
+  if (dOrb <= 1) return dOrb < 0.35 ? { color: "#e8f7ff", fill: "*" } : orb;
+
+  const dClawA = ell2(u, v, 0.42, 0.46, 0.04, 0.025);
+  const dClawB = ell2(u, v, 0.46, 0.44, 0.035, 0.022);
+  if (dClawA <= 1 || dClawB <= 1) return claw;
+
+  const dSnout = ell2(u, v, 0.48, 0.84, 0.07, 0.045);
+  const dHead = ell2(u, v, 0.57, 0.86, 0.1, 0.11);
+  const dEar = ell2(u, v, 0.62, 0.96, 0.04, 0.06);
+  if (dSnout <= 1) return shadeBody(0.48, 0.84, dSnout);
+  if (dHead <= 1) return shadeBody(0.57, 0.86, dHead);
+  if (dEar <= 1) return maneDeep;
+
+  const dBreast = ell2(u, v, 0.7, 0.56, 0.18, 0.24);
+  const dBreastLow = ell2(u, v, 0.66, 0.46, 0.12, 0.1);
+  if (dBreast <= 1) return shadeBody(0.7, 0.56, dBreast);
+  if (dBreastLow <= 1) return shadeBody(0.66, 0.46, dBreastLow);
+
+  const dArm = ell2(u, v, 0.56, 0.47, 0.16, 0.07);
+  if (dArm <= 1) return shadeBody(0.56, 0.47, dArm);
+
+  const dHipL = ell2(u, v, 0.34, 0.34, 0.27, 0.3);
+  const dHipR = ell2(u, v, 0.62, 0.32, 0.29, 0.32);
+  if (dHipL <= 1 && (dHipR > 1 || dHipL <= dHipR)) return shadeBody(0.34, 0.34, dHipL);
+  if (dHipR <= 1) return shadeBody(0.62, 0.32, dHipR);
+
+  const dThighL = ell2(u, v, 0.36, 0.1, 0.16, 0.16);
+  const dThighR = ell2(u, v, 0.62, 0.08, 0.17, 0.16);
+  if (dThighL <= 1) return shadeBody(0.36, 0.1, dThighL);
+  if (dThighR <= 1) return shadeBody(0.62, 0.08, dThighR);
+
+  const dWaist = ell2(u, v, 0.48, 0.54, 0.09, 0.15);
+  const dTorso = ell2(u, v, 0.46, 0.66, 0.11, 0.13);
+  if (dWaist <= 1) return shadeBody(0.48, 0.54, dWaist);
+  if (dTorso <= 1) return shadeBody(0.46, 0.66, dTorso);
+
+  const manes = [
+    [0.44, 0.78, 0.16, 0.2],
+    [0.38, 0.58, 0.15, 0.24],
+    [0.4, 0.38, 0.14, 0.2],
+    [0.46, 0.24, 0.12, 0.14],
+    [0.54, 0.7, 0.1, 0.22],
+  ];
+  for (const [cx, cy, rx, ry] of manes) {
+    const d = ell2(u, v, cx, cy, rx, ry);
+    if (d <= 1) {
+      if (d > 0.62) return maneTip;
+      if (d > 0.28) return mane;
+      return maneDeep;
+    }
+  }
+
+  const dMoon = ell2(u, v, 0.84, 0.86, 0.11, 0.11);
+  const dGlow = ell2(u, v, 0.84, 0.86, 0.18, 0.18);
+  if (dMoon <= 1) return moon;
+  if (dGlow <= 1) return moonGlow;
+
+  if (v < 0.07) return forest;
+  if (u < 0.2 && v < 0.58 && Math.abs(u - 0.08) < 0.12 * (0.62 - v)) return forest;
+  if (u > 0.86 && v < 0.5 && Math.abs(u - 0.94) < 0.1 * (0.55 - v)) return forest;
+  if (ell2(u, v, 0.1, 0.22, 0.08, 0.2) <= 1) return forest;
+  if (ell2(u, v, 0.92, 0.18, 0.07, 0.16) <= 1) return forest;
+
+  return sky;
+}
+
+function fillPaintedPlane(buf, x0, x1, y0, y1, z, sample, nx, ny) {
+  for (let i = 0; i < nx; i += 1) {
+    for (let j = 0; j < ny; j += 1) {
+      const u0 = i / nx;
+      const u1 = (i + 1) / nx;
+      const v0 = j / ny;
+      const v1 = (j + 1) / ny;
+      const hit = sample((u0 + u1) / 2, (v0 + v1) / 2);
+      if (!hit) continue;
+      fillQuad(
+        buf,
+        [
+          { x: x0 + (x1 - x0) * u0, y: y0 + (y1 - y0) * v0, z },
+          { x: x0 + (x1 - x0) * u1, y: y0 + (y1 - y0) * v0, z },
+          { x: x0 + (x1 - x0) * u1, y: y0 + (y1 - y0) * v1, z },
+          { x: x0 + (x1 - x0) * u0, y: y0 + (y1 - y0) * v1, z },
+        ],
+        hit.color,
+        hit.fill,
+      );
+    }
+  }
+}
+
+function drawFlat(buf) {
+  const x0 = 0.1;
+  const x1 = 1.9;
+  const y0 = 0.06;
+  const y1 = 1.94;
+  const z0 = 0.94;
+  const z1 = 1.06;
+  drawBox(buf, x0, x1, y0, y1, z0, z1, "#0a1428", ".");
+  fillPaintedPlane(buf, x0, x1, y0, y1, z1 + 0.02, sampleNightFlat, 48, 58);
+  fillPaintedPlane(buf, x0, x1, y0, y1, z0 - 0.02, (u, v) => sampleNightFlat(1 - u, v), 36, 44);
+}
+
+function drawFlatLabels(buf) {
+  const tags = [
+    { text: "[hips]", point: { x: 1.12, y: 0.62, z: 1.16 }, color: "#9a9aa6" },
+    { text: "[mane]", point: { x: 0.72, y: 1.28, z: 1.16 }, color: "#c62828" },
+    { text: "[moon]", point: { x: 1.62, y: 1.66, z: 1.16 }, color: "#f4f7ff" },
   ];
   for (const tag of tags) {
     const cell = toCell(tag.point);
