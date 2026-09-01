@@ -605,7 +605,8 @@ function drawNotes(buf) {
   }
 }
 
-function hoverLockEnabled() {
+function hoverLockEnabled(event) {
+  if (event?.pointerType === "mouse" || event?.pointerType === "pen") return true;
   return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 }
 
@@ -690,13 +691,11 @@ function endPointer(event) {
     const onBurger = isOnBurger(event.clientX, event.clientY);
     if (hit) {
       selectNote(hit.id);
-    } else if (hoverLockEnabled()) {
+    } else if (hoverLockEnabled(event)) {
       setRotateLock({ sticky: false, hover: onBurger });
     } else {
       setRotateLock({ sticky: onBurger, hover: false });
     }
-  } else if (hoverLockEnabled()) {
-    setRotateLock({ hover: isOnBurger(event.clientX, event.clientY) });
   }
 
   if (event.pointerId != null) {
@@ -775,6 +774,11 @@ lockRotate.addEventListener("click", () => {
 canvas.addEventListener("pointerdown", (event) => {
   yawVel = 0;
   pitchVel = 0;
+  const onBurger = isOnBurger(event.clientX, event.clientY);
+  if (onBurger) {
+    if (hoverLockEnabled(event)) setRotateLock({ hover: true });
+    else setRotateLock({ sticky: true });
+  }
   dragState = {
     x: event.clientX,
     y: event.clientY,
@@ -788,7 +792,7 @@ canvas.addEventListener("pointerdown", (event) => {
 
 canvas.addEventListener("pointermove", (event) => {
   if (!dragState) {
-    if (hoverLockEnabled() && !dragState) {
+    if (hoverLockEnabled(event)) {
       setRotateLock({ hover: isOnBurger(event.clientX, event.clientY) });
     }
     return;
@@ -827,7 +831,7 @@ canvas.addEventListener(
 canvas.addEventListener("pointerup", endPointer);
 canvas.addEventListener("pointercancel", endPointer);
 canvas.addEventListener("pointerleave", () => {
-  if (hoverLockEnabled() && !dragState) {
+  if (!dragState) {
     setRotateLock({ hover: false });
   }
 });
