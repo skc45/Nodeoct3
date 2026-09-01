@@ -43,12 +43,12 @@ const SHAPE_INFO = {
   },
   leaf: {
     id: "leaf",
-    label: "Leaf",
-    noun: "leaf",
-    title: "Plot ideas on a 0-2 leaf",
-    eyebrow: "3 Axis Notes // ASCII Leaf",
-    intro: "Add notes with scores from 0 to 2. Each point lands on the autumn maple leaf, inside one of eight labeled low/high octants.",
-    space: "0-2 leaf space",
+    label: "Flag",
+    noun: "flag",
+    title: "Plot ideas on a 0-2 Canadian flag",
+    eyebrow: "3 Axis Notes // ASCII Flag",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the Canadian flag, inside one of eight labeled low/high octants.",
+    space: "0-2 flag space",
   },
   house: {
     id: "house",
@@ -907,137 +907,152 @@ function drawDonutLabels(buf) {
   }
 }
 
-const SUGAR_ORIGIN = { x: 1, y: 0.5, z: 1 };
-const SUGAR_LOBES = [
-  { a: 0, r: 1.36, w: 0.5 },
-  { a: 1.02, r: 1.12, w: 0.46 },
-  { a: -1.02, r: 1.12, w: 0.46 },
-  { a: 1.98, r: 0.7, w: 0.4 },
-  { a: -1.98, r: 0.7, w: 0.4 },
+const MAPLE_SVG = [
+  [512, 32],
+  [599, 249],
+  [837, 194],
+  [720, 394],
+  [944, 487],
+  [720, 580],
+  [837, 780],
+  [599, 725],
+  [512, 942],
+  [425, 725],
+  [187, 780],
+  [304, 580],
+  [80, 487],
+  [304, 394],
+  [187, 194],
+  [425, 249],
 ];
 
-function wrapAngle(a) {
-  while (a > Math.PI) a -= Math.PI * 2;
-  while (a < -Math.PI) a += Math.PI * 2;
-  return a;
-}
-
-function sugarAngle(x, y) {
-  return Math.atan2(x - SUGAR_ORIGIN.x, y - SUGAR_ORIGIN.y);
-}
-
-function sugarRadius(angle) {
-  let best = Math.abs(wrapAngle(angle)) < 2.15 ? 0.24 : 0.05;
-  for (const lobe of SUGAR_LOBES) {
-    const t = Math.abs(wrapAngle(angle - lobe.a)) / lobe.w;
-    if (t >= 1) continue;
-    const pointed = Math.pow(Math.cos(t * Math.PI * 0.5), 1.2);
-    const teeth = 1 + 0.18 * Math.abs(Math.sin(t * Math.PI * 5)) * Math.pow(1 - t, 0.35);
-    best = Math.max(best, lobe.r * pointed * teeth);
-  }
-  return best;
-}
-
-function sugarColor(t) {
-  const stops = [
-    [0, "#ffe066", ":"],
-    [0.22, "#ffb347", "*"],
-    [0.45, "#ff7a1f", "+"],
-    [0.7, "#e23d1a", "#"],
-    [1, "#9b1228", "@"],
-  ];
-  let i = 0;
-  while (i < stops.length - 1 && t > stops[i + 1][0]) i += 1;
-  return { color: stops[i][1], fill: stops[i][2] };
-}
-
-function sugarPoint(angle, radius, z) {
+function mapleWorld(sx, sy, z = 1) {
+  const scale = 0.0007;
   return {
-    x: SUGAR_ORIGIN.x + Math.sin(angle) * radius,
-    y: SUGAR_ORIGIN.y + Math.cos(angle) * radius,
+    x: 1 + (sx - 512) * scale,
+    y: 1.02 + (487 - sy) * scale,
     z,
   };
 }
 
-function drawLeaf(buf) {
-  const zFront = 1.05;
-  const zBack = 0.95;
-  const minX = 0.08;
-  const maxX = 1.92;
-  const minY = 0.12;
-  const maxY = 1.94;
-  const nx = 36;
-  const ny = 40;
+const MAPLE_POLY = MAPLE_SVG.map(([sx, sy]) => mapleWorld(sx, sy));
 
+function pointInMaple(x, y) {
+  let inside = false;
+  for (let i = 0, j = MAPLE_POLY.length - 1; i < MAPLE_POLY.length; j = i, i += 1) {
+    const a = MAPLE_POLY[i];
+    const b = MAPLE_POLY[j];
+    if ((a.y > y) !== (b.y > y) && x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function flagFace(buf, z, red, white) {
+  const x0 = 0.1;
+  const x1 = 1.9;
+  const y0 = 0.55;
+  const y1 = 1.45;
+  const pale = (x1 - x0) / 4;
+  fillQuad(
+    buf,
+    [
+      { x: x0, y: y0, z },
+      { x: x1, y: y0, z },
+      { x: x1, y: y1, z },
+      { x: x0, y: y1, z },
+    ],
+    white,
+    "=",
+  );
+  fillQuad(
+    buf,
+    [
+      { x: x0, y: y0, z },
+      { x: x0 + pale, y: y0, z },
+      { x: x0 + pale, y: y1, z },
+      { x: x0, y: y1, z },
+    ],
+    red,
+    "#",
+  );
+  fillQuad(
+    buf,
+    [
+      { x: x1 - pale, y: y0, z },
+      { x: x1, y: y0, z },
+      { x: x1, y: y1, z },
+      { x: x1 - pale, y: y1, z },
+    ],
+    red,
+    "#",
+  );
+
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const p of MAPLE_POLY) {
+    minX = Math.min(minX, p.x);
+    maxX = Math.max(maxX, p.x);
+    minY = Math.min(minY, p.y);
+    maxY = Math.max(maxY, p.y);
+  }
+  const nx = 28;
+  const ny = 32;
   for (let i = 0; i < nx; i += 1) {
     for (let j = 0; j < ny; j += 1) {
-      const x0 = minX + ((maxX - minX) * i) / nx;
-      const x1 = minX + ((maxX - minX) * (i + 1)) / nx;
-      const y0 = minY + ((maxY - minY) * j) / ny;
-      const y1 = minY + ((maxY - minY) * (j + 1)) / ny;
-      const cx = (x0 + x1) / 2;
-      const cy = (y0 + y1) / 2;
-      const angle = sugarAngle(cx, cy);
-      const dist = Math.hypot(cx - SUGAR_ORIGIN.x, cy - SUGAR_ORIGIN.y);
-      const radius = sugarRadius(angle);
-      if (dist > radius) continue;
-      const t = Math.min(1, dist / Math.max(0.2, radius) + 0.06 * Math.sin(cx * 11 + cy * 7));
-      const { color, fill } = sugarColor(Math.max(0, Math.min(1, t)));
-      const q00 = { x: x0, y: y0, z: zFront };
-      const q10 = { x: x1, y: y0, z: zFront };
-      const q11 = { x: x1, y: y1, z: zFront };
-      const q01 = { x: x0, y: y1, z: zFront };
-      fillQuad(buf, [q00, q10, q11, q01], color, fill);
+      const xa = minX + ((maxX - minX) * i) / nx;
+      const xb = minX + ((maxX - minX) * (i + 1)) / nx;
+      const ya = minY + ((maxY - minY) * j) / ny;
+      const yb = minY + ((maxY - minY) * (j + 1)) / ny;
+      if (!pointInMaple((xa + xb) / 2, (ya + yb) / 2)) continue;
       fillQuad(
         buf,
         [
-          { ...q00, z: zBack },
-          { ...q01, z: zBack },
-          { ...q11, z: zBack },
-          { ...q10, z: zBack },
+          { x: xa, y: ya, z },
+          { x: xb, y: ya, z },
+          { x: xb, y: yb, z },
+          { x: xa, y: yb, z },
         ],
-        color,
-        fill,
+        red,
+        "#",
       );
     }
   }
+}
 
-  const vein = "#2a1810";
-  for (const lobe of SUGAR_LOBES) {
-    const tip = sugarPoint(lobe.a, lobe.r * 0.92, 1.08);
-    const origin = { x: SUGAR_ORIGIN.x, y: SUGAR_ORIGIN.y, z: 1.08 };
-    drawAsciiLine(buf, origin, tip, vein, 0.12);
-    const dx = tip.x - origin.x;
-    const dy = tip.y - origin.y;
-    const len = Math.hypot(dx, dy) || 1;
-    const px = -dy / len;
-    const py = dx / len;
-    for (const [t, span] of [
-      [0.38, 0.16],
-      [0.58, 0.13],
-      [0.76, 0.09],
-    ]) {
-      const p = lerp3(origin, tip, t);
-      const amt = span * (0.85 + 0.15 * Math.sin(lobe.a * 3));
-      drawAsciiLine(buf, p, { x: p.x + px * amt, y: p.y + py * amt, z: p.z }, vein, 0.07);
-      drawAsciiLine(buf, p, { x: p.x - px * amt, y: p.y - py * amt, z: p.z }, vein, 0.07);
-    }
+function drawLeaf(buf) {
+  const red = "#ff0000";
+  const white = "#f4f4f4";
+  flagFace(buf, 1.04, red, white);
+  flagFace(buf, 0.96, red, white);
+  const x0 = 0.1;
+  const x1 = 1.9;
+  const y0 = 0.55;
+  const y1 = 1.45;
+  const corners = [
+    { x: x0, y: y0, z: 1 },
+    { x: x1, y: y0, z: 1 },
+    { x: x1, y: y1, z: 1 },
+    { x: x0, y: y1, z: 1 },
+  ];
+  for (let i = 0; i < 4; i += 1) {
+    drawAsciiLine(buf, corners[i], corners[(i + 1) % 4], red, 0.08);
   }
-
-  const stemA = { x: 1, y: 0.48, z: 1 };
-  const stemB = { x: 0.97, y: 0.26, z: 1 };
-  const stemC = { x: 0.9, y: 0.08, z: 1 };
-  const stemD = { x: 0.84, y: 0.02, z: 1 };
-  drawTube(buf, stemA, stemB, "#3a2414");
-  drawTube(buf, stemB, stemC, "#2b1a10");
-  drawTube(buf, stemC, stemD, "#24160c");
+  for (let i = 0; i < MAPLE_POLY.length; i += 1) {
+    const a = MAPLE_POLY[i];
+    const b = MAPLE_POLY[(i + 1) % MAPLE_POLY.length];
+    drawAsciiLine(buf, { ...a, z: 1.05 }, { ...b, z: 1.05 }, red, 0.1);
+  }
 }
 
 function drawLeafLabels(buf) {
   const tags = [
-    { text: "[stem]", point: { x: 0.78, y: 0.08, z: 1.12 }, color: "#3a2414" },
-    { text: "[vein]", point: sugarPoint(1.02, 0.55, 1.16), color: "#2a1810" },
-    { text: "[tip]", point: sugarPoint(0, 1.28, 1.16), color: "#e23d1a" },
+    { text: "[pale]", point: { x: 0.22, y: 1.05, z: 1.12 }, color: "#ff4d4d" },
+    { text: "[maple]", point: { x: 1, y: 1.22, z: 1.12 }, color: "#ff0000" },
+    { text: "[field]", point: { x: 1.05, y: 0.68, z: 1.12 }, color: "#f4f4f4" },
   ];
   for (const tag of tags) {
     const cell = toCell(tag.point);
