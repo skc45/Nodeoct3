@@ -1889,7 +1889,8 @@ function sampleNightFlat(u, v) {
   return sky;
 }
 
-function fillPaintedPlane(buf, x0, x1, y0, y1, z, sample, nx, ny) {
+function fillPaintedPlane(buf, x0, x1, y0, y1, z, sample, nx, ny, mapPoint) {
+  const map = mapPoint || ((p) => p);
   for (let i = 0; i < nx; i += 1) {
     for (let j = 0; j < ny; j += 1) {
       const u0 = i / nx;
@@ -1901,10 +1902,10 @@ function fillPaintedPlane(buf, x0, x1, y0, y1, z, sample, nx, ny) {
       fillQuad(
         buf,
         [
-          { x: x0 + (x1 - x0) * u0, y: y0 + (y1 - y0) * v0, z },
-          { x: x0 + (x1 - x0) * u1, y: y0 + (y1 - y0) * v0, z },
-          { x: x0 + (x1 - x0) * u1, y: y0 + (y1 - y0) * v1, z },
-          { x: x0 + (x1 - x0) * u0, y: y0 + (y1 - y0) * v1, z },
+          map({ x: x0 + (x1 - x0) * u0, y: y0 + (y1 - y0) * v0, z }),
+          map({ x: x0 + (x1 - x0) * u1, y: y0 + (y1 - y0) * v0, z }),
+          map({ x: x0 + (x1 - x0) * u1, y: y0 + (y1 - y0) * v1, z }),
+          map({ x: x0 + (x1 - x0) * u0, y: y0 + (y1 - y0) * v1, z }),
         ],
         hit.color,
         hit.fill,
@@ -1913,23 +1914,31 @@ function fillPaintedPlane(buf, x0, x1, y0, y1, z, sample, nx, ny) {
   }
 }
 
+function faceDefaultView(point) {
+  const a = 0.9;
+  const cx = point.x - 1;
+  const cz = point.z - 1;
+  return {
+    x: 1 + cx * Math.cos(a) - cz * Math.sin(a),
+    y: point.y,
+    z: 1 + cx * Math.sin(a) + cz * Math.cos(a),
+  };
+}
+
 function drawFlat(buf) {
-  const x0 = 0.1;
-  const x1 = 1.9;
-  const y0 = 0.06;
-  const y1 = 1.94;
-  const z0 = 0.94;
-  const z1 = 1.06;
-  drawBox(buf, x0, x1, y0, y1, z0, z1, "#0a1428", ".");
-  fillPaintedPlane(buf, x0, x1, y0, y1, z1 + 0.02, sampleNightFlat, 48, 58);
-  fillPaintedPlane(buf, x0, x1, y0, y1, z0 - 0.02, (u, v) => sampleNightFlat(1 - u, v), 36, 44);
+  const x0 = 0.08;
+  const x1 = 1.92;
+  const y0 = 0.04;
+  const y1 = 1.96;
+  fillPaintedPlane(buf, x0, x1, y0, y1, 1.05, sampleNightFlat, 52, 64, faceDefaultView);
+  fillPaintedPlane(buf, x0, x1, y0, y1, 0.95, (u, v) => sampleNightFlat(1 - u, v), 32, 40, faceDefaultView);
 }
 
 function drawFlatLabels(buf) {
   const tags = [
-    { text: "[hips]", point: { x: 1.12, y: 0.62, z: 1.16 }, color: "#9a9aa6" },
-    { text: "[mane]", point: { x: 0.72, y: 1.28, z: 1.16 }, color: "#c62828" },
-    { text: "[moon]", point: { x: 1.62, y: 1.66, z: 1.16 }, color: "#f4f7ff" },
+    { text: "[hips]", point: faceDefaultView({ x: 1.16, y: 0.62, z: 1.16 }), color: "#9a9aa6" },
+    { text: "[mane]", point: faceDefaultView({ x: 0.72, y: 1.32, z: 1.16 }), color: "#c62828" },
+    { text: "[moon]", point: faceDefaultView({ x: 1.64, y: 1.68, z: 1.16 }), color: "#f4f7ff" },
   ];
   for (const tag of tags) {
     const cell = toCell(tag.point);
