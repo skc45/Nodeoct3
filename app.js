@@ -949,45 +949,50 @@ function pointInMaple(x, y) {
   return inside;
 }
 
-function flagFace(buf, z, red, white) {
-  const x0 = 0.1;
-  const x1 = 1.9;
-  const y0 = 0.55;
-  const y1 = 1.45;
+function fillFlagRect(buf, x0, x1, y0, y1, z, color, fill, nx, ny) {
+  for (let i = 0; i < nx; i += 1) {
+    for (let j = 0; j < ny; j += 1) {
+      const xa = x0 + ((x1 - x0) * i) / nx;
+      const xb = x0 + ((x1 - x0) * (i + 1)) / nx;
+      const ya = y0 + ((y1 - y0) * j) / ny;
+      const yb = y0 + ((y1 - y0) * (j + 1)) / ny;
+      fillQuad(
+        buf,
+        [
+          { x: xa, y: ya, z },
+          { x: xb, y: ya, z },
+          { x: xb, y: yb, z },
+          { x: xa, y: yb, z },
+        ],
+        color,
+        fill,
+      );
+    }
+  }
+}
+
+function drawLeaf(buf) {
+  const red = "#ff0000";
+  const white = "#f4f4f4";
+  const x0 = 0.08;
+  const x1 = 1.92;
+  const y0 = 0.52;
+  const y1 = 1.48;
+  const z0 = 0.92;
+  const z1 = 1.08;
   const pale = (x1 - x0) / 4;
-  fillQuad(
-    buf,
-    [
-      { x: x0, y: y0, z },
-      { x: x1, y: y0, z },
-      { x: x1, y: y1, z },
-      { x: x0, y: y1, z },
-    ],
-    white,
-    "=",
-  );
-  fillQuad(
-    buf,
-    [
-      { x: x0, y: y0, z },
-      { x: x0 + pale, y: y0, z },
-      { x: x0 + pale, y: y1, z },
-      { x: x0, y: y1, z },
-    ],
-    red,
-    "#",
-  );
-  fillQuad(
-    buf,
-    [
-      { x: x1 - pale, y: y0, z },
-      { x: x1, y: y0, z },
-      { x: x1, y: y1, z },
-      { x: x1 - pale, y: y1, z },
-    ],
-    red,
-    "#",
-  );
+  const left = x0 + pale;
+  const right = x1 - pale;
+
+  drawBox(buf, x0, left, y0, y1, z0, z1, red, "#");
+  drawBox(buf, left, right, y0, y1, z0, z1, white, "=");
+  drawBox(buf, right, x1, y0, y1, z0, z1, red, "#");
+  fillFlagRect(buf, x0, left, y0, y1, z1 + 0.01, red, "#", 4, 10);
+  fillFlagRect(buf, left, right, y0, y1, z1 + 0.01, white, "=", 10, 10);
+  fillFlagRect(buf, right, x1, y0, y1, z1 + 0.01, red, "#", 4, 10);
+  fillFlagRect(buf, x0, left, y0, y1, z0 - 0.01, red, "#", 4, 10);
+  fillFlagRect(buf, left, right, y0, y1, z0 - 0.01, white, "=", 10, 10);
+  fillFlagRect(buf, right, x1, y0, y1, z0 - 0.01, red, "#", 4, 10);
 
   let minX = Infinity;
   let maxX = -Infinity;
@@ -999,8 +1004,8 @@ function flagFace(buf, z, red, white) {
     minY = Math.min(minY, p.y);
     maxY = Math.max(maxY, p.y);
   }
-  const nx = 28;
-  const ny = 32;
+  const nx = 30;
+  const ny = 34;
   for (let i = 0; i < nx; i += 1) {
     for (let j = 0; j < ny; j += 1) {
       const xa = minX + ((maxX - minX) * i) / nx;
@@ -1011,48 +1016,28 @@ function flagFace(buf, z, red, white) {
       fillQuad(
         buf,
         [
-          { x: xa, y: ya, z },
-          { x: xb, y: ya, z },
-          { x: xb, y: yb, z },
-          { x: xa, y: yb, z },
+          { x: xa, y: ya, z: z1 + 0.03 },
+          { x: xb, y: ya, z: z1 + 0.03 },
+          { x: xb, y: yb, z: z1 + 0.03 },
+          { x: xa, y: yb, z: z1 + 0.03 },
         ],
         red,
         "#",
       );
     }
   }
-}
-
-function drawLeaf(buf) {
-  const red = "#ff0000";
-  const white = "#f4f4f4";
-  flagFace(buf, 1.04, red, white);
-  flagFace(buf, 0.96, red, white);
-  const x0 = 0.1;
-  const x1 = 1.9;
-  const y0 = 0.55;
-  const y1 = 1.45;
-  const corners = [
-    { x: x0, y: y0, z: 1 },
-    { x: x1, y: y0, z: 1 },
-    { x: x1, y: y1, z: 1 },
-    { x: x0, y: y1, z: 1 },
-  ];
-  for (let i = 0; i < 4; i += 1) {
-    drawAsciiLine(buf, corners[i], corners[(i + 1) % 4], red, 0.08);
-  }
   for (let i = 0; i < MAPLE_POLY.length; i += 1) {
     const a = MAPLE_POLY[i];
     const b = MAPLE_POLY[(i + 1) % MAPLE_POLY.length];
-    drawAsciiLine(buf, { ...a, z: 1.05 }, { ...b, z: 1.05 }, red, 0.1);
+    drawAsciiLine(buf, { ...a, z: z1 + 0.04 }, { ...b, z: z1 + 0.04 }, red, 0.12);
   }
 }
 
 function drawLeafLabels(buf) {
   const tags = [
-    { text: "[pale]", point: { x: 0.22, y: 1.05, z: 1.12 }, color: "#ff4d4d" },
-    { text: "[maple]", point: { x: 1, y: 1.22, z: 1.12 }, color: "#ff0000" },
-    { text: "[field]", point: { x: 1.05, y: 0.68, z: 1.12 }, color: "#f4f4f4" },
+    { text: "[pale]", point: { x: 0.22, y: 1.05, z: 1.16 }, color: "#ff4d4d" },
+    { text: "[maple]", point: { x: 1, y: 1.22, z: 1.16 }, color: "#ff0000" },
+    { text: "[field]", point: { x: 1.05, y: 0.64, z: 1.16 }, color: "#f4f4f4" },
   ];
   for (const tag of tags) {
     const cell = toCell(tag.point);
