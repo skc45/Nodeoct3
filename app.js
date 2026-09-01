@@ -74,7 +74,7 @@ const SHAPE_INFO = {
     noun: "drone",
     title: "Plot ideas on a 0-2 drone",
     eyebrow: "3 Axis Notes // ASCII Drone",
-    intro: "Add notes with scores from 0 to 2. Each point lands on the airframe, inside one of eight labeled low/high octants.",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the tiny whoop, inside one of eight labeled low/high octants.",
     space: "0-2 drone space",
   },
   truck: {
@@ -1088,28 +1088,143 @@ function drawCartLabels(buf) {
   }
 }
 
+function torusXZ(u, v, cx, y, cz, R, r) {
+  const ring = R + r * Math.cos(v);
+  return {
+    x: cx + ring * Math.cos(u),
+    y: y + r * Math.sin(v),
+    z: cz + ring * Math.sin(u),
+  };
+}
+
+function drawTorusXZ(buf, cx, y, cz, R, r, color, fill, uSeg = 14, vSeg = 7) {
+  for (let i = 0; i < uSeg; i += 1) {
+    for (let j = 0; j < vSeg; j += 1) {
+      const u0 = (i / uSeg) * Math.PI * 2;
+      const u1 = ((i + 1) / uSeg) * Math.PI * 2;
+      const v0 = (j / vSeg) * Math.PI * 2;
+      const v1 = ((j + 1) / vSeg) * Math.PI * 2;
+      fillQuad(
+        buf,
+        [
+          torusXZ(u0, v0, cx, y, cz, R, r),
+          torusXZ(u1, v0, cx, y, cz, R, r),
+          torusXZ(u1, v1, cx, y, cz, R, r),
+          torusXZ(u0, v1, cx, y, cz, R, r),
+        ],
+        color,
+        fill,
+      );
+    }
+  }
+}
+
+function fillDiscFacingZ(buf, cx, cy, z, radius, color, fill, segments = 8) {
+  const center = { x: cx, y: cy, z };
+  for (let i = 0; i < segments; i += 1) {
+    const a0 = (i / segments) * Math.PI * 2;
+    const a1 = ((i + 1) / segments) * Math.PI * 2;
+    fillQuad(
+      buf,
+      [
+        center,
+        { x: cx + Math.cos(a0) * radius, y: cy + Math.sin(a0) * radius, z },
+        { x: cx + Math.cos(a1) * radius, y: cy + Math.sin(a1) * radius, z },
+        center,
+      ],
+      color,
+      fill,
+    );
+  }
+}
+
+function drawWhoopProp(buf, cx, y, cz, radius, blades, phase, color) {
+  for (let b = 0; b < blades; b += 1) {
+    const a = phase + (b / blades) * Math.PI * 2;
+    const tip = { x: cx + Math.cos(a) * radius, y, z: cz + Math.sin(a) * radius };
+    const left = {
+      x: cx + Math.cos(a - 0.42) * radius * 0.18,
+      y: y + 0.01,
+      z: cz + Math.sin(a - 0.42) * radius * 0.18,
+    };
+    const right = {
+      x: cx + Math.cos(a + 0.42) * radius * 0.18,
+      y: y - 0.01,
+      z: cz + Math.sin(a + 0.42) * radius * 0.18,
+    };
+    const hub = { x: cx, y, z: cz };
+    fillQuad(buf, [hub, left, tip, right], color, "/");
+    drawAsciiLine(buf, hub, tip, color, 0.08);
+  }
+}
+
 function drawDrone(buf) {
-  drawBox(buf, 0.78, 1.22, 0.88, 1.16, 0.78, 1.22, "#8b9aab", "#");
-  drawBox(buf, 0.9, 1.1, 0.7, 0.88, 0.9, 1.1, "#fb7185", "o");
+  const frame = "#e8eef4";
+  const frameDim = "#c5ced8";
+  const pink = "#ff4fa8";
+  const pinkDeep = "#e03790";
+  const pcb = "#1b1e24";
+  const motor = "#2b3038";
+  const bell = "#3d6ea8";
+  const wire = "#111318";
+  const ductY = 1.02;
+  const R = 0.35;
+  const r = 0.075;
+  const offset = 0.39;
   const hubs = [
-    [0.32, 0.32],
-    [1.68, 0.32],
-    [0.32, 1.68],
-    [1.68, 1.68],
+    { x: 1 - offset, z: 1 - offset, spin: 0.15 },
+    { x: 1 + offset, z: 1 - offset, spin: -0.15 },
+    { x: 1 - offset, z: 1 + offset, spin: -0.15 },
+    { x: 1 + offset, z: 1 + offset, spin: 0.15 },
   ];
-  for (const [x, z] of hubs) {
-    drawBox(buf, Math.min(1, x) - 0.04, Math.max(1, x) + 0.04, 1.0, 1.08, Math.min(1, z) - 0.04, Math.max(1, z) + 0.04, "#ffc857", "+");
-    fillDiscAt(buf, x, 1.2, z, 0.26, "#7dd3fc", "*", 10);
-    drawAsciiLine(buf, { x, y: 1.02, z }, { x, y: 0.52, z }, "#9aa7b5", 0.05);
-    drawBox(buf, x - 0.08, x + 0.08, 0.48, 0.56, z - 0.08, z + 0.08, "#4a5568", "=");
+
+  drawBox(buf, 0.86, 1.14, 0.88, 0.98, 0.86, 1.14, "#252830", "#");
+  drawBox(buf, 0.84, 1.16, 0.98, 1.08, 0.84, 1.16, pcb, "#");
+
+  for (const hub of hubs) {
+    drawTorusXZ(buf, hub.x, ductY, hub.z, R, r, frame, "@");
+    drawTube(buf, { x: 1, y: 1.02, z: 1 }, { x: hub.x, y: ductY, z: hub.z }, frameDim);
+    drawAsciiLine(buf, { x: 1, y: 1.04, z: 1 }, { x: hub.x, y: ductY + 0.02, z: hub.z }, wire, 0.04);
+    fillDiscAt(buf, hub.x, ductY - 0.04, hub.z, 0.07, bell, "*", 8);
+    fillDiscAt(buf, hub.x, ductY + 0.02, hub.z, 0.055, motor, "#", 8);
+    fillDiscAt(buf, hub.x, ductY + 0.07, hub.z, 0.03, "#4a5160", "+", 6);
+    drawWhoopProp(buf, hub.x, ductY + 0.08, hub.z, 0.26, 3, hub.spin, pink);
+  }
+
+  const legL = { x: 0.88, y: 1.08, z: 1.02 };
+  const legR = { x: 1.12, y: 1.08, z: 1.02 };
+  const peak = { x: 1, y: 1.3, z: 1.14 };
+  const noseL = { x: 0.92, y: 1.08, z: 1.28 };
+  const noseR = { x: 1.08, y: 1.08, z: 1.28 };
+  const nose = { x: 1, y: 1.12, z: 1.34 };
+  fillQuad(buf, [legL, peak, nose, noseL], pink, "A");
+  fillQuad(buf, [legR, peak, nose, noseR], pinkDeep, "A");
+  fillQuad(buf, [legL, peak, legR, legL], pink, "A");
+  fillQuad(buf, [noseL, nose, noseR, noseL], pinkDeep, "A");
+  fillDiscFacingZ(buf, 1, 1.1, 1.36, 0.07, "#0d0d0f", "O");
+  fillDiscFacingZ(buf, 1, 1.1, 1.38, 0.035, "#3a3a40", "*");
+
+  drawAsciiLine(buf, { x: 1.02, y: 1.08, z: 0.86 }, { x: 1.08, y: 1.62, z: 0.74 }, wire, 0.05);
+  const tip = toCell({ x: 1.08, y: 1.64, z: 0.72 });
+  plotCell(buf, Math.round(tip.x), Math.round(tip.y), "*", tip.z + 0.1, "#f4f4f4");
+  drawAsciiLine(buf, { x: 0.96, y: 1.08, z: 0.88 }, { x: 0.9, y: 1.4, z: 0.7 }, "#c5cdd4", 0.06);
+
+  for (const [x, z] of [
+    [0.9, 0.9],
+    [1.1, 0.9],
+    [0.9, 1.1],
+    [1.1, 1.1],
+  ]) {
+    const screw = toCell({ x, y: 1.09, z });
+    plotCell(buf, Math.round(screw.x), Math.round(screw.y), "+", screw.z + 0.12, "#d0d5dc");
   }
 }
 
 function drawDroneLabels(buf) {
   const tags = [
-    { text: "[body]", point: { x: 1, y: 1.05, z: 1.32 }, color: "#c5d0dc" },
-    { text: "[rotor]", point: { x: 1.68, y: 1.32, z: 0.32 }, color: "#7dd3fc" },
-    { text: "[cam]", point: { x: 1, y: 0.72, z: 1.18 }, color: "#fb7185" },
+    { text: "[duct]", point: { x: 1.52, y: 1.02, z: 0.5 }, color: "#e8eef4" },
+    { text: "[prop]", point: { x: 0.5, y: 1.22, z: 1.5 }, color: "#ff4fa8" },
+    { text: "[cam]", point: { x: 1, y: 1.22, z: 1.48 }, color: "#ff4fa8" },
   ];
   for (const tag of tags) {
     const cell = toCell(tag.point);
