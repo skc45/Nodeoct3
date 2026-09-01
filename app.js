@@ -488,12 +488,10 @@ function setupCanvasSize() {
   canvas.height = Math.max(1, Math.floor(rect.height * dpr));
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  cellH = Math.max(6, Math.min(9, Math.floor(rect.height / 96)));
-  ctx.font = `${Math.max(5, Math.floor(cellH * 0.95))}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
-  const measured = ctx.measureText("0").width;
-  cellW = Math.max(4, Math.round(measured) || Math.floor(cellH * 0.6));
-  gridCols = Math.max(48, Math.floor(rect.width / cellW));
-  gridRows = Math.max(32, Math.floor(rect.height / cellH));
+  cellH = Math.max(10, Math.min(16, Math.floor(rect.height / 46)));
+  cellW = Math.max(6, Math.floor(cellH * 0.62));
+  gridCols = Math.max(24, Math.floor(rect.width / cellW));
+  gridRows = Math.max(16, Math.floor(rect.height / cellH));
   drawScene();
 }
 
@@ -521,7 +519,7 @@ function project(point) {
   const rect = canvas.getBoundingClientRect();
   const rotated = rotate(point);
   const distance = 4.6;
-  const scale = Math.min(rect.width, rect.height) * 0.38 * zoom;
+  const scale = Math.min(rect.width, rect.height) * 0.34 * zoom;
   const perspective = distance / (distance - rotated.z);
 
   return {
@@ -653,7 +651,7 @@ function writeText(buf, text, x, y, color, depth = 8) {
 function blit(buf, rect) {
   ctx.fillStyle = "#05070a";
   ctx.fillRect(0, 0, rect.width, rect.height);
-  ctx.font = `${Math.max(5, Math.floor(cellH * 0.95))}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+  ctx.font = `${Math.floor(cellH * 0.92)}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
 
