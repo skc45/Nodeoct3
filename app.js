@@ -56,7 +56,7 @@ const SHAPE_INFO = {
     noun: "house",
     title: "Plot ideas on a 0-2 house",
     eyebrow: "3 Axis Notes // ASCII House",
-    intro: "Add notes with scores from 0 to 2. Each point lands in the house volume, inside one of eight labeled low/high octants.",
+    intro: "Add notes with scores from 0 to 2. Each point lands in the lit mansion, inside one of eight labeled low/high octants.",
     space: "0-2 house space",
   },
   cart: {
@@ -83,7 +83,7 @@ const SHAPE_INFO = {
     noun: "truck",
     title: "Plot ideas on a 0-2 truck",
     eyebrow: "3 Axis Notes // ASCII Truck",
-    intro: "Add notes with scores from 0 to 2. Each point lands on the cab or bed, inside one of eight labeled low/high octants.",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the silver Toyota flatbed, inside one of eight labeled low/high octants.",
     space: "0-2 truck space",
   },
 };
@@ -756,6 +756,56 @@ function drawWheelYZ(buf, x, cy, cz, radius, thickness = 0.08, caster = false) {
   }
 }
 
+function drawWheelXY(buf, cx, cy, z, radius, thickness = 0.1) {
+  const tire = "#1a1a1a";
+  const rim = "#2e2e32";
+  const segments = 11;
+  for (const oz of [-thickness / 2, thickness / 2]) {
+    const wz = z + oz;
+    const center = { x: cx, y: cy, z: wz };
+    for (let i = 0; i < segments; i += 1) {
+      const a0 = (i / segments) * Math.PI * 2;
+      const a1 = ((i + 1) / segments) * Math.PI * 2;
+      const outer0 = { x: cx + Math.cos(a0) * radius, y: cy + Math.sin(a0) * radius, z: wz };
+      const outer1 = { x: cx + Math.cos(a1) * radius, y: cy + Math.sin(a1) * radius, z: wz };
+      const inner0 = { x: cx + Math.cos(a0) * radius * 0.42, y: cy + Math.sin(a0) * radius * 0.42, z: wz };
+      const inner1 = { x: cx + Math.cos(a1) * radius * 0.42, y: cy + Math.sin(a1) * radius * 0.42, z: wz };
+      fillQuad(buf, [outer0, outer1, inner1, inner0], tire, "o");
+      fillQuad(buf, [center, inner0, inner1, center], rim, "*");
+    }
+  }
+}
+
+function writeOnMesh(buf, text, point, color) {
+  const cell = toCell(point);
+  const start = Math.round(cell.x - text.length / 2);
+  const row = Math.round(cell.y);
+  for (let i = 0; i < text.length; i += 1) {
+    plotCell(buf, start + i, row, text[i], cell.z + 0.16, color);
+  }
+}
+
+function drawLitWindow(buf, x0, x1, y0, y1, z0, z1, arched = false) {
+  const glow = "#ffd056";
+  const pane = "#ffe38a";
+  drawBox(buf, x0, x1, y0, y1, z0, z1, glow, "o");
+  if (arched) {
+    const mid = (x0 + x1) / 2;
+    const z = (z0 + z1) / 2;
+    fillQuad(
+      buf,
+      [
+        { x: x0, y: y1, z },
+        { x: x1, y: y1, z },
+        { x: mid, y: y1 + (y1 - y0) * 0.35, z },
+        { x: x0, y: y1, z },
+      ],
+      pane,
+      "o",
+    );
+  }
+}
+
 function drawBurger(buf) {
   for (const layer of BURGER_LAYERS) {
     const rings = layer.dome ? 4 : 1;
@@ -926,28 +976,104 @@ function drawBox(buf, x0, x1, y0, y1, z0, z1, color, fill) {
 }
 
 function drawHouse(buf) {
-  drawBox(buf, 0.38, 1.62, 0.02, 1.18, 0.42, 1.58, "#e8dcc8", "#");
-  const ridgeF = { x: 1, y: 1.88, z: 1.58 };
-  const ridgeB = { x: 1, y: 1.88, z: 0.42 };
-  const eaveLF = { x: 0.22, y: 1.16, z: 1.58 };
-  const eaveRF = { x: 1.78, y: 1.16, z: 1.58 };
-  const eaveLB = { x: 0.22, y: 1.16, z: 0.42 };
-  const eaveRB = { x: 1.78, y: 1.16, z: 0.42 };
-  fillQuad(buf, [eaveLF, ridgeF, ridgeB, eaveLB], "#c23b22", "A");
-  fillQuad(buf, [eaveRF, ridgeF, ridgeB, eaveRB], "#a8321c", "A");
-  fillQuad(buf, [eaveLF, ridgeF, eaveRF, eaveLF], "#e05a3c", "/");
-  fillQuad(buf, [eaveLB, ridgeB, eaveRB, eaveLB], "#9a2e1a", "/");
-  drawBox(buf, 0.86, 1.14, 0.02, 0.58, 1.52, 1.62, "#6b3a2a", "H");
-  drawBox(buf, 0.48, 0.74, 0.62, 0.92, 1.54, 1.61, "#7dd3fc", "o");
-  drawBox(buf, 1.26, 1.52, 0.62, 0.92, 1.54, 1.61, "#7dd3fc", "o");
-  drawBox(buf, 1.32, 1.52, 1.42, 1.98, 0.5, 0.72, "#8a8a8a", "|");
+  const stone = "#e6d4b8";
+  const stoneDim = "#cbb694";
+  const brick = "#b46348";
+  const rail = "#d5dde4";
+  const glow = "#ffd056";
+
+  for (let i = 0; i < 10; i += 1) {
+    const z0 = 1.5 + i * 0.045;
+    const z1 = z0 + 0.045;
+    fillQuad(
+      buf,
+      [
+        { x: 0.12, y: 0.02, z: z0 },
+        { x: 1.88, y: 0.02, z: z0 },
+        { x: 1.88, y: 0.02, z: z1 },
+        { x: 0.12, y: 0.02, z: z1 },
+      ],
+      i % 2 === 0 ? "#2f6d3c" : "#3d8750",
+      i % 2 === 0 ? "/" : "\\",
+    );
+  }
+
+  drawBox(buf, 0.28, 1.72, 0.02, 0.42, 0.52, 1.46, "#4a5560", "#");
+  drawBox(buf, 0.38, 1.62, 0.08, 0.38, 1.44, 1.52, "#8fd4ea", "o");
+  for (const x of [0.48, 0.72, 0.96, 1.2, 1.44]) {
+    drawLitWindow(buf, x, x + 0.16, 0.1, 0.34, 1.5, 1.54, false);
+  }
+  drawBox(buf, 0.42, 0.7, 0.04, 0.14, 1.54, 1.72, "#1f242b", "=");
+  drawBox(buf, 0.78, 1.06, 0.04, 0.14, 1.54, 1.72, "#1f242b", "=");
+  drawBox(buf, 1.14, 1.42, 0.04, 0.12, 1.58, 1.7, "#f2f2f2", "=");
+
+  drawBox(buf, 0.16, 1.84, 0.4, 0.5, 0.48, 1.66, stone, "=");
+  drawBox(buf, 0.16, 1.84, 0.5, 0.64, 1.62, 1.68, rail, "|");
+  for (const x of [0.22, 0.52, 0.82, 1.12, 1.42, 1.72]) {
+    drawBox(buf, x - 0.03, x + 0.03, 0.5, 0.66, 1.62, 1.7, stoneDim, "+");
+  }
+
+  for (let step = 0; step < 5; step += 1) {
+    const t = step / 5;
+    const y1 = 0.48 - t * 0.42;
+    const y0 = y1 - 0.08;
+    const z0 = 1.66 + t * 0.22;
+    const z1 = z0 + 0.08;
+    drawBox(buf, 0.28, 0.52, y0, y1, z0, z1, stoneDim, "=");
+    drawBox(buf, 1.48, 1.72, y0, y1, z0, z1, stoneDim, "=");
+  }
+
+  drawBox(buf, 0.22, 1.78, 0.48, 1.52, 0.46, 1.46, stone, "#");
+  drawBox(buf, 0.22, 0.5, 0.48, 1.46, 0.5, 1.44, brick, "#");
+  drawBox(buf, 1.5, 1.78, 0.48, 1.46, 0.5, 1.44, brick, "#");
+  drawBox(buf, 0.7, 1.3, 0.48, 1.54, 1.38, 1.54, stone, "#");
+
+  const pedL = { x: 0.7, y: 1.54, z: 1.54 };
+  const pedR = { x: 1.3, y: 1.54, z: 1.54 };
+  const pedPeak = { x: 1, y: 1.9, z: 1.54 };
+  const pedLb = { x: 0.72, y: 1.54, z: 1.4 };
+  const pedRb = { x: 1.28, y: 1.54, z: 1.4 };
+  const pedPeakB = { x: 1, y: 1.86, z: 1.4 };
+  fillQuad(buf, [pedL, pedPeak, pedR, pedL], "#f3e6cc", "A");
+  fillQuad(buf, [pedLb, pedPeakB, pedRb, pedLb], stoneDim, "A");
+  fillQuad(buf, [pedL, pedPeak, pedPeakB, pedLb], glow, "/");
+  fillQuad(buf, [pedR, pedPeak, pedPeakB, pedRb], "#ffe08a", "/");
+
+  drawBox(buf, 0.82, 1.18, 1.02, 1.16, 1.52, 1.66, stoneDim, "=");
+  drawBox(buf, 0.82, 1.18, 1.16, 1.26, 1.62, 1.68, "#3a424c", "|");
+
+  const facadeZ0 = 1.46;
+  const facadeZ1 = 1.52;
+  const bays = [0.3, 0.52, 0.76, 1.08, 1.32, 1.54];
+  for (const x of bays) {
+    drawLitWindow(buf, x, x + 0.16, 0.58, 0.98, facadeZ0, facadeZ1, true);
+    drawLitWindow(buf, x + 0.02, x + 0.14, 1.2, 1.4, facadeZ0, facadeZ1, false);
+  }
+  for (const x of [0.26, 0.48, 0.7, 1.02, 1.26, 1.48, 1.7]) {
+    drawBox(buf, x - 0.025, x + 0.025, 0.5, 1.48, 1.42, 1.5, stoneDim, "|");
+  }
+
+  drawBox(buf, 0.2, 1.8, 1.5, 1.6, 0.44, 1.48, stoneDim, "=");
+  for (const x of [0.24, 0.56, 0.88, 1.12, 1.44, 1.76]) {
+    drawBox(buf, x - 0.03, x + 0.03, 1.58, 1.7, 1.42, 1.5, stone, "+");
+    const lamp = toCell({ x, y: 1.72, z: 1.48 });
+    plotCell(buf, Math.round(lamp.x), Math.round(lamp.y), "*", lamp.z + 0.1, glow);
+  }
+  for (const [x, z] of [
+    [0.38, 0.62],
+    [1.62, 0.62],
+    [0.38, 1.22],
+    [1.62, 1.22],
+  ]) {
+    drawBox(buf, x - 0.08, x + 0.08, 1.56, 1.94, z - 0.08, z + 0.08, stone, "#");
+  }
 }
 
 function drawHouseLabels(buf) {
   const tags = [
-    { text: "[roof]", point: { x: 1, y: 1.7, z: 1.72 }, color: "#c23b22" },
-    { text: "[door]", point: { x: 1, y: 0.3, z: 1.72 }, color: "#6b3a2a" },
-    { text: "[chimney]", point: { x: 1.62, y: 1.8, z: 0.6 }, color: "#b0b0b0" },
+    { text: "[pediment]", point: { x: 1, y: 1.82, z: 1.7 }, color: "#f3e6cc" },
+    { text: "[windows]", point: { x: 0.38, y: 0.78, z: 1.62 }, color: "#ffd056" },
+    { text: "[terrace]", point: { x: 1.55, y: 0.46, z: 1.74 }, color: "#e6d4b8" },
   ];
   for (const tag of tags) {
     const cell = toCell(tag.point);
@@ -1233,28 +1359,79 @@ function drawDroneLabels(buf) {
 }
 
 function drawTruck(buf) {
-  drawBox(buf, 0.28, 0.86, 0.38, 1.42, 0.52, 1.48, "#e63946", "#");
-  drawBox(buf, 0.42, 0.82, 0.92, 1.28, 1.42, 1.52, "#7dd3fc", "o");
-  drawBox(buf, 0.86, 1.18, 0.38, 0.82, 0.58, 1.42, "#c23b22", "=");
-  drawBox(buf, 1.12, 1.88, 0.38, 1.08, 0.48, 1.52, "#9aa7b5", "#");
-  drawBox(buf, 1.16, 1.84, 1.08, 1.16, 0.52, 1.48, "#6b7280", "=");
+  const silver = "#c5ccd4";
+  const silverDim = "#9aa3ad";
+  const black = "#1a1c20";
+  const glass = "#9ec9e8";
+  const amber = "#e8943a";
+
+  drawBox(buf, 0.26, 1.86, 0.3, 0.44, 0.54, 1.46, black, "=");
+
+  drawBox(buf, 0.18, 0.46, 0.42, 0.78, 0.5, 1.5, silver, "#");
+  drawBox(buf, 0.42, 0.96, 0.42, 1.28, 0.46, 1.54, silver, "#");
+  fillQuad(
+    buf,
+    [
+      { x: 0.46, y: 0.78, z: 0.5 },
+      { x: 0.46, y: 0.78, z: 1.5 },
+      { x: 0.54, y: 1.26, z: 1.5 },
+      { x: 0.54, y: 1.26, z: 0.5 },
+    ],
+    glass,
+    "/",
+  );
+  drawBox(buf, 0.5, 0.92, 0.82, 1.18, 1.5, 1.56, glass, "o");
+  drawBox(buf, 0.5, 0.92, 0.82, 1.18, 0.44, 0.5, glass, "o");
+  drawBox(buf, 0.88, 0.94, 0.7, 1.16, 0.48, 1.52, glass, "|");
+
+  drawBox(buf, 0.12, 0.28, 0.44, 0.86, 0.48, 1.52, black, "#");
+  drawBox(buf, 0.12, 0.26, 0.7, 0.84, 0.52, 0.72, "#eef4ff", "=");
+  drawBox(buf, 0.12, 0.26, 0.7, 0.84, 1.28, 1.48, "#eef4ff", "=");
+  drawBox(buf, 0.12, 0.24, 0.7, 0.76, 0.5, 0.6, amber, "=");
+  drawBox(buf, 0.12, 0.24, 0.7, 0.76, 1.4, 1.5, amber, "=");
+  drawPerforatedQuad(
+    buf,
+    { x: 0.14, y: 0.62, z: 0.54 },
+    { x: 0.14, y: 0.62, z: 1.46 },
+    { x: 0.14, y: 0.46, z: 1.46 },
+    { x: 0.14, y: 0.46, z: 0.54 },
+    "#2c3036",
+    "o",
+    8,
+    3,
+  );
+  drawBox(buf, 0.1, 0.3, 0.32, 0.46, 0.46, 1.54, black, "=");
+  drawBox(buf, 0.12, 0.26, 0.34, 0.44, 0.86, 1.14, "#f4f4f4", "=");
+  writeOnMesh(buf, "TOYOTA", { x: 0.16, y: 0.76, z: 1 }, "#d8dde3");
+  writeOnMesh(buf, "TOYOTA", { x: 0.18, y: 0.38, z: 1 }, black);
+
+  drawBox(buf, 0.38, 0.5, 0.96, 1.12, 1.52, 1.64, black, "#");
+  drawBox(buf, 0.38, 0.5, 0.96, 1.12, 0.36, 0.48, black, "#");
+
+  drawBox(buf, 0.94, 1.9, 0.58, 0.7, 0.5, 1.5, silverDim, "=");
+  drawBox(buf, 0.94, 1.88, 0.7, 0.98, 0.5, 0.58, silver, "#");
+  drawBox(buf, 0.94, 1.88, 0.7, 0.98, 1.42, 1.5, silver, "#");
+  drawBox(buf, 1.82, 1.9, 0.7, 0.98, 0.52, 1.48, silver, "#");
+  for (const x of [1.04, 1.18, 1.32, 1.46, 1.6, 1.74]) {
+    drawAsciiLine(buf, { x, y: 0.72, z: 0.5 }, { x, y: 0.96, z: 0.5 }, silverDim, 0.05);
+    drawAsciiLine(buf, { x, y: 0.72, z: 1.5 }, { x, y: 0.96, z: 1.5 }, silverDim, 0.05);
+  }
+
   for (const [x, z] of [
-    [0.52, 0.5],
-    [0.52, 1.5],
-    [1.38, 0.5],
-    [1.38, 1.5],
-    [1.72, 0.5],
-    [1.72, 1.5],
+    [0.5, 0.48],
+    [0.5, 1.52],
+    [1.48, 0.48],
+    [1.48, 1.52],
   ]) {
-    drawBox(buf, x - 0.12, x + 0.12, 0.04, 0.38, z - 0.12, z + 0.12, "#2d2d2d", "o");
+    drawWheelXY(buf, x, 0.22, z, 0.2, 0.12);
   }
 }
 
 function drawTruckLabels(buf) {
   const tags = [
-    { text: "[cab]", point: { x: 0.55, y: 1.2, z: 1.62 }, color: "#e63946" },
-    { text: "[bed]", point: { x: 1.5, y: 0.8, z: 1.62 }, color: "#9aa7b5" },
-    { text: "[wheels]", point: { x: 1.38, y: 0.18, z: 0.28 }, color: "#c5d0dc" },
+    { text: "[grille]", point: { x: 0.12, y: 0.7, z: 1.62 }, color: "#d8dde3" },
+    { text: "[cab]", point: { x: 0.7, y: 1.22, z: 1.6 }, color: "#c5ccd4" },
+    { text: "[bed]", point: { x: 1.5, y: 0.86, z: 1.62 }, color: "#9aa3ad" },
   ];
   for (const tag of tags) {
     const cell = toCell(tag.point);
