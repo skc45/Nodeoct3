@@ -52,10 +52,13 @@
             <p class="eyebrow">0-2 burger space</p>
             <h2 id="activeRegion">No note selected</h2>
           </div>
-          <button id="resetView" type="button" class="ghost-button">[ RESET VIEW ]</button>
+          <div class="scene-actions">
+            <button id="lockRotate" type="button" class="ghost-button" aria-pressed="false">[ LOCK ]</button>
+            <button id="resetView" type="button" class="ghost-button">[ RESET VIEW ]</button>
+          </div>
         </div>
         <canvas id="cubeCanvas" width="1100" height="900"></canvas>
-        <p class="canvas-hint">Drag to rotate. Scroll to zoom. Click @ or o to select a note.</p>
+        <p class="canvas-hint" id="canvasHint">Hover or tap the burger to lock, then swipe to rotate.</p>
       </section>
     </main>
 

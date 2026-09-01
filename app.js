@@ -74,6 +74,13 @@ let cellW = 8;
 let cellH = 14;
 let gridCols = 80;
 let gridRows = 40;
+let lastBuf = null;
+let rotateLocked = false;
+let stickyLock = false;
+let hoverLocked = false;
+let yawVel = 0;
+let pitchVel = 0;
+let spinFrame = 0;
 
 const canvas = document.querySelector("#cubeCanvas");
 const ctx = canvas.getContext("2d");
@@ -88,6 +95,9 @@ const openSettings = document.querySelector("#openSettings");
 const closeSettings = document.querySelector("#closeSettings");
 const resetLabels = document.querySelector("#resetLabels");
 const resetView = document.querySelector("#resetView");
+const lockRotate = document.querySelector("#lockRotate");
+const cubePanel = document.querySelector(".cube-panel");
+const canvasHint = document.querySelector("#canvasHint");
 
 function loadSettings() {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -469,6 +479,7 @@ function drawScene() {
   drawTicksAndAxes(buf);
   drawLayerLabels(buf);
   drawNotes(buf);
+  lastBuf = buf;
   blit(buf, rect);
 }
 
@@ -594,9 +605,108 @@ function drawNotes(buf) {
   }
 }
 
+function hoverLockEnabled() {
+  return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+}
+
+function isOnBurger(clientX, clientY) {
+  if (!lastBuf) return false;
+  const rect = canvas.getBoundingClientRect();
+  const col = Math.floor((clientX - rect.left) / cellW);
+  const row = Math.floor((clientY - rect.top) / cellH);
+  for (let dr = -2; dr <= 2; dr += 1) {
+    for (let dc = -2; dc <= 2; dc += 1) {
+      const ch = lastBuf.chars[row + dr]?.[col + dc];
+      if (ch && ch !== " ") return true;
+    }
+  }
+  return false;
+}
+
+function setRotateLock({ hover, sticky } = {}) {
+  const nextHover = hover == null ? hoverLocked : hover;
+  const nextSticky = sticky == null ? stickyLock : sticky;
+  const nextLocked = Boolean(nextSticky || nextHover);
+  if (nextHover === hoverLocked && nextSticky === stickyLock && nextLocked === rotateLocked) return;
+  hoverLocked = nextHover;
+  stickyLock = nextSticky;
+  rotateLocked = nextLocked;
+  cubePanel.classList.toggle("is-locked", rotateLocked);
+  lockRotate.textContent = rotateLocked ? "[ UNLOCK ]" : "[ LOCK ]";
+  lockRotate.setAttribute("aria-pressed", rotateLocked ? "true" : "false");
+  canvasHint.textContent = rotateLocked
+    ? "Locked. Swipe to rotate. Tap empty space to unlock. Click @ or o to select."
+    : "Hover or tap the burger to lock, then swipe to rotate.";
+  if (!rotateLocked) {
+    yawVel = 0;
+    pitchVel = 0;
+  }
+}
+
+function startSpin() {
+  if (spinFrame) return;
+  const tick = () => {
+    if (dragState || !rotateLocked || (Math.abs(yawVel) < 0.0005 && Math.abs(pitchVel) < 0.0005)) {
+      yawVel = 0;
+      pitchVel = 0;
+      spinFrame = 0;
+      return;
+    }
+    yaw += yawVel;
+    pitch = Math.max(-1.15, Math.min(1.15, pitch + pitchVel));
+    yawVel *= 0.9;
+    pitchVel *= 0.9;
+    drawScene();
+    spinFrame = requestAnimationFrame(tick);
+  };
+  spinFrame = requestAnimationFrame(tick);
+}
+
+function pointerPosition(event) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top,
+  };
+}
+
 function openSettingsDialog() {
   renderSettingsForm();
   settingsDialog.showModal();
+}
+
+function hitNoteAt(x, y) {
+  return [...hitTargets].reverse().find((target) => Math.hypot(target.x - x, target.y - y) <= target.radius);
+}
+
+function endPointer(event) {
+  if (dragState && rotateLocked && dragState.moved) {
+    startSpin();
+  }
+
+  if (dragState && !dragState.moved) {
+    const pos = pointerPosition(event);
+    const hit = hitNoteAt(pos.x, pos.y);
+    const onBurger = isOnBurger(event.clientX, event.clientY);
+    if (hit) {
+      selectNote(hit.id);
+    } else if (hoverLockEnabled()) {
+      setRotateLock({ sticky: false, hover: onBurger });
+    } else {
+      setRotateLock({ sticky: onBurger, hover: false });
+    }
+  } else if (hoverLockEnabled()) {
+    setRotateLock({ hover: isOnBurger(event.clientX, event.clientY) });
+  }
+
+  if (event.pointerId != null) {
+    try {
+      canvas.releasePointerCapture(event.pointerId);
+    } catch {
+      // already released
+    }
+  }
+  dragState = null;
 }
 
 noteForm.addEventListener("submit", (event) => {
@@ -654,28 +764,51 @@ resetView.addEventListener("click", () => {
   yaw = -0.9;
   pitch = 0.38;
   zoom = 1;
+  yawVel = 0;
+  pitchVel = 0;
   drawScene();
+});
+lockRotate.addEventListener("click", () => {
+  setRotateLock({ sticky: !stickyLock });
 });
 
 canvas.addEventListener("pointerdown", (event) => {
-  canvas.setPointerCapture(event.pointerId);
+  yawVel = 0;
+  pitchVel = 0;
   dragState = {
     x: event.clientX,
     y: event.clientY,
     moved: false,
   };
+  if (rotateLocked) {
+    event.preventDefault();
+    canvas.setPointerCapture(event.pointerId);
+  }
 });
 
 canvas.addEventListener("pointermove", (event) => {
-  if (!dragState) return;
+  if (!dragState) {
+    if (hoverLockEnabled() && !dragState) {
+      setRotateLock({ hover: isOnBurger(event.clientX, event.clientY) });
+    }
+    return;
+  }
+
   const dx = event.clientX - dragState.x;
   const dy = event.clientY - dragState.y;
   if (Math.abs(dx) + Math.abs(dy) > 2) {
     dragState.moved = true;
   }
 
-  yaw -= dx * 0.008;
-  pitch = Math.max(-1.15, Math.min(1.15, pitch + dy * 0.008));
+  if (!rotateLocked) return;
+
+  event.preventDefault();
+  const stepYaw = dx * 0.012;
+  const stepPitch = dy * 0.012;
+  yaw -= stepYaw;
+  pitch = Math.max(-1.15, Math.min(1.15, pitch + stepPitch));
+  yawVel = -stepYaw;
+  pitchVel = stepPitch;
   dragState.x = event.clientX;
   dragState.y = event.clientY;
   drawScene();
@@ -691,20 +824,12 @@ canvas.addEventListener(
   { passive: false },
 );
 
-canvas.addEventListener("pointerup", (event) => {
-  canvas.releasePointerCapture(event.pointerId);
-  const rect = canvas.getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-
-  if (!dragState?.moved) {
-    const hit = [...hitTargets].reverse().find((target) => Math.hypot(target.x - x, target.y - y) <= target.radius);
-    if (hit) {
-      selectNote(hit.id);
-    }
+canvas.addEventListener("pointerup", endPointer);
+canvas.addEventListener("pointercancel", endPointer);
+canvas.addEventListener("pointerleave", () => {
+  if (hoverLockEnabled() && !dragState) {
+    setRotateLock({ hover: false });
   }
-
-  dragState = null;
 });
 
 window.addEventListener("resize", setupCanvasSize);
