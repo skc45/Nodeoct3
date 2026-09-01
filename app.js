@@ -1895,7 +1895,7 @@ function shadeFlatProjection(hit) {
   const len = Math.hypot(nx, ny, nz) || 1;
   const shine = (nx * 0.32 + ny * 0.52 + nz * 0.8) / len;
   if (shine > 0.64) return { color: solid.hi, fill: "*" };
-  if (shine > 0.3) return { color: solid.hi, fill: "o" };
+  if (shine > 0.3) return { color: solid.color, fill: "o" };
   return { color: solid.color, fill: solid.fill };
 }
 
