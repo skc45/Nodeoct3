@@ -2,6 +2,11 @@ plugins {
     id "com.android.application"
 }
 
+def versionProps = new Properties()
+file("${rootProject.projectDir}/version.properties").withInputStream { stream ->
+    versionProps.load(stream)
+}
+
 android {
     namespace "com.skc45.nodeoct3"
     compileSdk 34
@@ -10,8 +15,8 @@ android {
         applicationId "com.skc45.nodeoct3"
         minSdk 24
         targetSdk 34
-        versionCode 14
-        versionName "2.3"
+        versionCode versionProps["versionCode"].toInteger()
+        versionName versionProps["versionName"]
     }
 
     buildTypes {
