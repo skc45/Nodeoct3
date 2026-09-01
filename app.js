@@ -1796,7 +1796,7 @@ const FLAT_X1 = 1.92;
 const FLAT_Y0 = 0.04;
 const FLAT_Y1 = 1.96;
 const FLAT_Z = 1;
-const FLAT_GROOVE = 0.03;
+const FLAT_GROOVE = 0.055;
 
 const FLAT_SOLIDS = [
   { u: 0.84, v: 0.86, ru: 0.11, rv: 0.11, rz: 0.08, cz: 1.02, color: "#f4f7ff", hi: "#ffffff", fill: "*", groove: false },
@@ -1811,8 +1811,8 @@ const FLAT_SOLIDS = [
   { u: 0.7, v: 0.56, ru: 0.18, rv: 0.24, rz: 0.2, cz: 1.1, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
   { u: 0.66, v: 0.46, ru: 0.12, rv: 0.1, rz: 0.12, cz: 1.08, color: "#2a2a32", hi: "#8c8c98", fill: "o", groove: true },
   { u: 0.56, v: 0.47, ru: 0.16, rv: 0.07, rz: 0.08, cz: 1.12, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
-  { u: 0.34, v: 0.34, ru: 0.27, rv: 0.3, rz: 0.28, cz: 1.06, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
-  { u: 0.62, v: 0.32, ru: 0.29, rv: 0.32, rz: 0.3, cz: 1.06, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
+  { u: 0.32, v: 0.34, ru: 0.24, rv: 0.3, rz: 0.3, cz: 1.08, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
+  { u: 0.66, v: 0.32, ru: 0.25, rv: 0.32, rz: 0.32, cz: 1.08, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
   { u: 0.36, v: 0.1, ru: 0.16, rv: 0.16, rz: 0.16, cz: 1.04, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
   { u: 0.62, v: 0.08, ru: 0.17, rv: 0.16, rz: 0.16, cz: 1.04, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
   { u: 0.48, v: 0.54, ru: 0.09, rv: 0.15, rz: 0.12, cz: 1.08, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
@@ -1905,8 +1905,8 @@ function flatCorner(u, v) {
 }
 
 function drawFlat(buf) {
-  const nx = 42;
-  const ny = 52;
+  const nx = 46;
+  const ny = 56;
   for (let i = 0; i < nx; i += 1) {
     for (let j = 0; j < ny; j += 1) {
       const u0 = i / nx;
