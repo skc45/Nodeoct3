@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>3 Axis Notes Burger // ASCII</title>
+    <title>3 Axis Notes // ASCII</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <button class="gear-button" id="openSettings" aria-label="Open burger settings">
+    <button class="gear-button" id="openSettings" aria-label="Open plot settings">
       <span></span>
       <span></span>
       <span></span>
@@ -16,12 +16,13 @@
     <main class="app-shell">
       <section class="note-panel" aria-labelledby="notePanelTitle">
         <div>
-          <p class="eyebrow">3 Axis Notes // ASCII Burger</p>
-          <h1 id="notePanelTitle">Plot ideas on a 0-2 burger</h1>
-          <p class="intro">
-            Add notes with scores from 0 to 2. Each point lands in the bun-to-bun
-            stack, inside one of eight labeled low/high octants.
+          <p class="eyebrow" id="shapeEyebrow">3 Axis Notes // ASCII</p>
+          <h1 id="notePanelTitle">Plot ideas in a 0-2 shape</h1>
+          <p class="intro" id="shapeIntro">
+            Add notes with scores from 0 to 2. Each point lands in the selected
+            shape, inside one of eight labeled low/high octants.
           </p>
+          <div class="shape-picker" id="shapePicker" role="group" aria-label="Plot shape"></div>
         </div>
 
         <form id="noteForm" class="note-form">
@@ -46,10 +47,10 @@
         </section>
       </section>
 
-      <section class="cube-panel" aria-label="ASCII burger visualization">
+      <section class="cube-panel" aria-label="ASCII shape visualization">
         <div class="scene-toolbar">
           <div>
-            <p class="eyebrow">0-2 burger space</p>
+            <p class="eyebrow" id="shapeSpace">0-2 plot space</p>
             <h2 id="activeRegion">No note selected</h2>
           </div>
           <div class="scene-actions">
@@ -58,7 +59,7 @@
           </div>
         </div>
         <canvas id="cubeCanvas" width="1100" height="900"></canvas>
-        <p class="canvas-hint" id="canvasHint">Hover or tap the burger to lock, then swipe to rotate.</p>
+        <p class="canvas-hint" id="canvasHint">Hover or tap the shape to lock, then swipe to rotate.</p>
       </section>
     </main>
 
@@ -66,7 +67,7 @@
       <form id="settingsForm" method="dialog">
         <div class="modal-header">
           <div>
-            <p class="eyebrow">Burger settings</p>
+            <p class="eyebrow">Plot settings</p>
             <h2>Name axes and octants</h2>
           </div>
           <button type="button" id="closeSettings" class="icon-button" aria-label="Close settings">[ CLOSE ]</button>
@@ -74,7 +75,8 @@
 
         <p class="modal-copy">
           Octants are described with each axis name plus low/high. Scores below 1
-          are low; scores from 1 to 2 are high. The burger stacks along Y.
+          are low; scores from 1 to 2 are high. Pick burger, donut, leaf, or house
+          for the 0-2 mesh.
         </p>
 
         <fieldset class="axis-settings">

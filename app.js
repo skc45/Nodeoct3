@@ -22,9 +22,49 @@ const SESAME_SEEDS = [
   [-0.28, 0.04],
 ];
 
+const SHAPE_INFO = {
+  burger: {
+    id: "burger",
+    label: "Burger",
+    noun: "burger",
+    title: "Plot ideas on a 0-2 burger",
+    eyebrow: "3 Axis Notes // ASCII Burger",
+    intro: "Add notes with scores from 0 to 2. Each point lands in the bun-to-bun stack, inside one of eight labeled low/high octants.",
+    space: "0-2 burger space",
+  },
+  donut: {
+    id: "donut",
+    label: "Donut",
+    noun: "donut",
+    title: "Plot ideas on a 0-2 donut",
+    eyebrow: "3 Axis Notes // ASCII Donut",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the glazed torus, inside one of eight labeled low/high octants.",
+    space: "0-2 donut space",
+  },
+  leaf: {
+    id: "leaf",
+    label: "Leaf",
+    noun: "leaf",
+    title: "Plot ideas on a 0-2 leaf",
+    eyebrow: "3 Axis Notes // ASCII Leaf",
+    intro: "Add notes with scores from 0 to 2. Each point lands along the blade from stem to tip, inside one of eight labeled low/high octants.",
+    space: "0-2 leaf space",
+  },
+  house: {
+    id: "house",
+    label: "House",
+    noun: "house",
+    title: "Plot ideas on a 0-2 house",
+    eyebrow: "3 Axis Notes // ASCII House",
+    intro: "Add notes with scores from 0 to 2. Each point lands in the house volume, inside one of eight labeled low/high octants.",
+    space: "0-2 house space",
+  },
+};
+
 const defaultSettings = {
   axes: ["Urgency", "Impact", "Effort"],
   regions: {},
+  shape: "burger",
 };
 
 const regionCombos = [
@@ -98,6 +138,11 @@ const resetView = document.querySelector("#resetView");
 const lockRotate = document.querySelector("#lockRotate");
 const cubePanel = document.querySelector(".cube-panel");
 const canvasHint = document.querySelector("#canvasHint");
+const shapePicker = document.querySelector("#shapePicker");
+const shapeEyebrow = document.querySelector("#shapeEyebrow");
+const shapeIntro = document.querySelector("#shapeIntro");
+const shapeSpace = document.querySelector("#shapeSpace");
+const notePanelTitle = document.querySelector("#notePanelTitle");
 
 function loadSettings() {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -110,14 +155,55 @@ function loadSettings() {
     return {
       axes: parsed.axes?.length === 3 ? parsed.axes : [...defaultSettings.axes],
       regions: { ...defaultSettings.regions, ...(parsed.regions || {}) },
+      shape: SHAPE_INFO[parsed.shape] ? parsed.shape : "burger",
     };
   } catch {
     return structuredClone(defaultSettings);
   }
 }
 
+function currentShape() {
+  return SHAPE_INFO[settings.shape] ? settings.shape : "burger";
+}
+
+function shapeNoun() {
+  return SHAPE_INFO[currentShape()].noun;
+}
+
 function saveSettings() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+}
+
+function applyShapeCopy() {
+  const info = SHAPE_INFO[currentShape()];
+  document.title = info.eyebrow;
+  shapeEyebrow.textContent = info.eyebrow;
+  notePanelTitle.textContent = info.title;
+  shapeIntro.textContent = info.intro;
+  shapeSpace.textContent = info.space;
+  cubePanel.setAttribute("aria-label", `ASCII ${info.noun} visualization`);
+  canvasHint.textContent = rotateLocked
+    ? "Locked. Swipe to rotate. Tap empty space to unlock. Click @ or o to select."
+    : `Hover or tap the ${info.noun} to lock, then swipe to rotate.`;
+}
+
+function renderShapePicker() {
+  shapePicker.innerHTML = "";
+  Object.values(SHAPE_INFO).forEach((info) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.shape = info.id;
+    button.className = info.id === currentShape() ? "is-active" : "";
+    button.textContent = `[ ${info.label.toUpperCase()} ]`;
+    button.addEventListener("click", () => {
+      settings.shape = info.id;
+      saveSettings();
+      applyShapeCopy();
+      renderShapePicker();
+      drawScene();
+    });
+    shapePicker.appendChild(button);
+  });
 }
 
 function getRegionParts(point) {
@@ -475,20 +561,39 @@ function drawScene() {
   hitTargets = [];
   const buf = createBuffer();
 
-  drawBurger(buf);
+  drawShape(buf);
   drawTicksAndAxes(buf);
-  drawLayerLabels(buf);
+  drawShapeLabels(buf);
   drawNotes(buf);
   lastBuf = buf;
   blit(buf, rect);
 }
 
-function burgerPoint(angle, radius, y) {
-  return {
-    x: BURGER_CENTER.x + Math.cos(angle) * radius,
-    y,
-    z: BURGER_CENTER.z + Math.sin(angle) * radius,
+function drawShape(buf) {
+  const drawers = { burger: drawBurger, donut: drawDonut, leaf: drawLeaf, house: drawHouse };
+  drawers[currentShape()](buf);
+}
+
+function drawShapeLabels(buf) {
+  const labels = {
+    burger: drawBurgerLabels,
+    donut: drawDonutLabels,
+    leaf: drawLeafLabels,
+    house: drawHouseLabels,
   };
+  labels[currentShape()](buf);
+}
+
+function ringPoint(angle, radius, y, cx = 1, cz = 1) {
+  return {
+    x: cx + Math.cos(angle) * radius,
+    y,
+    z: cz + Math.sin(angle) * radius,
+  };
+}
+
+function burgerPoint(angle, radius, y) {
+  return ringPoint(angle, radius, y, BURGER_CENTER.x, BURGER_CENTER.z);
 }
 
 function layerRadius(layer, angle) {
@@ -542,7 +647,7 @@ function drawBurger(buf) {
   }
 }
 
-function drawLayerLabels(buf) {
+function drawBurgerLabels(buf) {
   for (const layer of BURGER_LAYERS) {
     if (layer.plate) continue;
     const point = {
@@ -552,6 +657,155 @@ function drawLayerLabels(buf) {
     };
     const cell = toCell(point);
     writeText(buf, `[${layer.name}]`, cell.x, cell.y, layer.color, 7);
+  }
+}
+
+function torusPoint(u, v, R = 0.72, r = 0.3) {
+  return {
+    x: 1 + (R + r * Math.cos(v)) * Math.cos(u),
+    y: 1 + r * Math.sin(v),
+    z: 1 + (R + r * Math.cos(v)) * Math.sin(u),
+  };
+}
+
+function drawDonut(buf) {
+  const uSeg = 20;
+  const vSeg = 12;
+  for (let i = 0; i < uSeg; i += 1) {
+    for (let j = 0; j < vSeg; j += 1) {
+      const u0 = (i / uSeg) * Math.PI * 2;
+      const u1 = ((i + 1) / uSeg) * Math.PI * 2;
+      const v0 = (j / vSeg) * Math.PI * 2;
+      const v1 = ((j + 1) / vSeg) * Math.PI * 2;
+      const glazed = Math.sin((v0 + v1) / 2) > 0.12;
+      const color = glazed ? "#f4a6c1" : "#d4a574";
+      const fill = glazed ? "@" : "O";
+      fillQuad(buf, [torusPoint(u0, v0), torusPoint(u1, v0), torusPoint(u1, v1), torusPoint(u0, v1)], color, fill);
+    }
+  }
+
+  const sprinkles = [
+    [0.2, 0.9, "#ff6b6b"],
+    [1.1, 0.7, "#7dd3fc"],
+    [2.4, 1.2, "#ffe66d"],
+    [3.6, 0.5, "#ffffff"],
+    [4.8, 1.0, "#ff8fab"],
+    [5.5, 0.8, "#bde0fe"],
+  ];
+  for (const [u, v, color] of sprinkles) {
+    const seed = torusPoint(u, v, 0.72, 0.34);
+    const cell = toCell(seed);
+    plotCell(buf, Math.round(cell.x), Math.round(cell.y), "*", cell.z + 0.12, color);
+  }
+}
+
+function drawDonutLabels(buf) {
+  const tags = [
+    { text: "[glaze]", point: torusPoint(0.4, 1.2), color: "#f4a6c1" },
+    { text: "[dough]", point: torusPoint(3.4, 4.2), color: "#d4a574" },
+    { text: "[hole]", point: { x: 1, y: 1, z: 1 }, color: "#9aa7b5" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function leafPoint(t, s) {
+  const y = 0.1 + t * 1.84;
+  const width = Math.sin(Math.PI * Math.max(0.02, Math.min(0.98, t))) * (0.62 + 0.1 * Math.sin(t * 10));
+  return {
+    x: 1 + s * width,
+    y,
+    z: 1 + 0.2 * Math.sin(Math.PI * t) + s * s * 0.05,
+  };
+}
+
+function drawLeaf(buf) {
+  const tSeg = 14;
+  const sSeg = 8;
+  for (let i = 0; i < tSeg; i += 1) {
+    for (let j = 0; j < sSeg; j += 1) {
+      const t0 = i / tSeg;
+      const t1 = (i + 1) / tSeg;
+      const s0 = -1 + (2 * j) / sSeg;
+      const s1 = -1 + (2 * (j + 1)) / sSeg;
+      const color = Math.abs((s0 + s1) / 2) < 0.12 ? "#2f7a3a" : "#5dce6a";
+      const fill = Math.abs((s0 + s1) / 2) < 0.12 ? "|" : "~";
+      fillQuad(buf, [leafPoint(t0, s0), leafPoint(t1, s0), leafPoint(t1, s1), leafPoint(t0, s1)], color, fill);
+    }
+  }
+
+  drawAsciiLine(buf, { x: 1, y: 0.02, z: 1 }, { x: 1, y: 0.18, z: 1 }, "#8b5a2b", 0.08);
+  drawAsciiLine(buf, leafPoint(0.02, 0), leafPoint(0.98, 0), "#2f7a3a", 0.08);
+}
+
+function drawLeafLabels(buf) {
+  const tags = [
+    { text: "[stem]", point: { x: 1, y: 0.08, z: 1.12 }, color: "#8b5a2b" },
+    { text: "[blade]", point: leafPoint(0.45, 0.9), color: "#5dce6a" },
+    { text: "[tip]", point: leafPoint(0.96, 0), color: "#7dff6b" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function drawBox(buf, x0, x1, y0, y1, z0, z1, color, fill) {
+  const p = (x, y, z) => ({ x, y, z });
+  const faces = [
+    [p(x0, y0, z0), p(x1, y0, z0), p(x1, y1, z0), p(x0, y1, z0)],
+    [p(x0, y0, z1), p(x1, y0, z1), p(x1, y1, z1), p(x0, y1, z1)],
+    [p(x0, y0, z0), p(x0, y1, z0), p(x0, y1, z1), p(x0, y0, z1)],
+    [p(x1, y0, z0), p(x1, y1, z0), p(x1, y1, z1), p(x1, y0, z1)],
+    [p(x0, y0, z0), p(x1, y0, z0), p(x1, y0, z1), p(x0, y0, z1)],
+    [p(x0, y1, z0), p(x1, y1, z0), p(x1, y1, z1), p(x0, y1, z1)],
+  ];
+  for (const face of faces) {
+    fillQuad(buf, face, color, fill);
+  }
+  const corners = [
+    p(x0, y0, z0), p(x1, y0, z0), p(x1, y1, z0), p(x0, y1, z0),
+    p(x0, y0, z1), p(x1, y0, z1), p(x1, y1, z1), p(x0, y1, z1),
+  ];
+  const edges = [
+    [0, 1], [1, 2], [2, 3], [3, 0],
+    [4, 5], [5, 6], [6, 7], [7, 4],
+    [0, 4], [1, 5], [2, 6], [3, 7],
+  ];
+  for (const [a, b] of edges) {
+    drawAsciiLine(buf, corners[a], corners[b], color, 0.06);
+  }
+}
+
+function drawHouse(buf) {
+  drawBox(buf, 0.38, 1.62, 0.02, 1.18, 0.42, 1.58, "#e8dcc8", "#");
+  const ridgeF = { x: 1, y: 1.88, z: 1.58 };
+  const ridgeB = { x: 1, y: 1.88, z: 0.42 };
+  const eaveLF = { x: 0.22, y: 1.16, z: 1.58 };
+  const eaveRF = { x: 1.78, y: 1.16, z: 1.58 };
+  const eaveLB = { x: 0.22, y: 1.16, z: 0.42 };
+  const eaveRB = { x: 1.78, y: 1.16, z: 0.42 };
+  fillQuad(buf, [eaveLF, ridgeF, ridgeB, eaveLB], "#c23b22", "A");
+  fillQuad(buf, [eaveRF, ridgeF, ridgeB, eaveRB], "#a8321c", "A");
+  fillQuad(buf, [eaveLF, ridgeF, eaveRF, eaveLF], "#e05a3c", "/");
+  fillQuad(buf, [eaveLB, ridgeB, eaveRB, eaveLB], "#9a2e1a", "/");
+  drawBox(buf, 0.86, 1.14, 0.02, 0.58, 1.52, 1.62, "#6b3a2a", "H");
+  drawBox(buf, 0.48, 0.74, 0.62, 0.92, 1.54, 1.61, "#7dd3fc", "o");
+  drawBox(buf, 1.26, 1.52, 0.62, 0.92, 1.54, 1.61, "#7dd3fc", "o");
+  drawBox(buf, 1.32, 1.52, 1.42, 1.98, 0.5, 0.72, "#8a8a8a", "|");
+}
+
+function drawHouseLabels(buf) {
+  const tags = [
+    { text: "[roof]", point: { x: 1, y: 1.7, z: 1.72 }, color: "#c23b22" },
+    { text: "[door]", point: { x: 1, y: 0.3, z: 1.72 }, color: "#6b3a2a" },
+    { text: "[chimney]", point: { x: 1.62, y: 1.8, z: 0.6 }, color: "#b0b0b0" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
   }
 }
 
@@ -610,7 +864,7 @@ function hoverLockEnabled(event) {
   return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 }
 
-function isOnBurger(clientX, clientY) {
+function isOnShape(clientX, clientY) {
   if (!lastBuf) return false;
   const rect = canvas.getBoundingClientRect();
   const col = Math.floor((clientX - rect.left) / cellW);
@@ -636,8 +890,8 @@ function setRotateLock({ hover, sticky } = {}) {
   lockRotate.textContent = rotateLocked ? "[ UNLOCK ]" : "[ LOCK ]";
   lockRotate.setAttribute("aria-pressed", rotateLocked ? "true" : "false");
   canvasHint.textContent = rotateLocked
-    ? "Locked. Swipe to rotate. Tap empty space to unlock. Click @ or o to select."
-    : "Hover or tap the burger to lock, then swipe to rotate.";
+    ? `Locked. Swipe to rotate. Tap empty space to unlock. Click @ or o to select.`
+    : `Hover or tap the ${shapeNoun()} to lock, then swipe to rotate.`;
   if (!rotateLocked) {
     yawVel = 0;
     pitchVel = 0;
@@ -688,7 +942,7 @@ function endPointer(event) {
   if (dragState && !dragState.moved) {
     const pos = pointerPosition(event);
     const hit = hitNoteAt(pos.x, pos.y);
-    const onBurger = isOnBurger(event.clientX, event.clientY);
+    const onBurger = isOnShape(event.clientX, event.clientY);
     if (hit) {
       selectNote(hit.id);
     } else if (hoverLockEnabled(event)) {
@@ -774,7 +1028,7 @@ lockRotate.addEventListener("click", () => {
 canvas.addEventListener("pointerdown", (event) => {
   yawVel = 0;
   pitchVel = 0;
-  const onBurger = isOnBurger(event.clientX, event.clientY);
+  const onBurger = isOnShape(event.clientX, event.clientY);
   if (onBurger) {
     if (hoverLockEnabled(event)) setRotateLock({ hover: true });
     else setRotateLock({ sticky: true });
@@ -793,7 +1047,7 @@ canvas.addEventListener("pointerdown", (event) => {
 canvas.addEventListener("pointermove", (event) => {
   if (!dragState) {
     if (hoverLockEnabled(event)) {
-      setRotateLock({ hover: isOnBurger(event.clientX, event.clientY) });
+      setRotateLock({ hover: isOnShape(event.clientX, event.clientY) });
     }
     return;
   }
@@ -840,6 +1094,8 @@ window.addEventListener("resize", setupCanvasSize);
 
 renderSliders();
 renderNotesList();
+renderShapePicker();
+applyShapeCopy();
 updateActiveRegion();
 setupCanvasSize();
 
