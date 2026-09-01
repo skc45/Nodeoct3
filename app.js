@@ -59,6 +59,33 @@ const SHAPE_INFO = {
     intro: "Add notes with scores from 0 to 2. Each point lands in the house volume, inside one of eight labeled low/high octants.",
     space: "0-2 house space",
   },
+  cart: {
+    id: "cart",
+    label: "Cart",
+    noun: "cart",
+    title: "Plot ideas on a 0-2 shopping cart",
+    eyebrow: "3 Axis Notes // ASCII Cart",
+    intro: "Add notes with scores from 0 to 2. Each point lands in the basket, inside one of eight labeled low/high octants.",
+    space: "0-2 cart space",
+  },
+  drone: {
+    id: "drone",
+    label: "Drone",
+    noun: "drone",
+    title: "Plot ideas on a 0-2 drone",
+    eyebrow: "3 Axis Notes // ASCII Drone",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the airframe, inside one of eight labeled low/high octants.",
+    space: "0-2 drone space",
+  },
+  truck: {
+    id: "truck",
+    label: "Truck",
+    noun: "truck",
+    title: "Plot ideas on a 0-2 truck",
+    eyebrow: "3 Axis Notes // ASCII Truck",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the cab or bed, inside one of eight labeled low/high octants.",
+    space: "0-2 truck space",
+  },
 };
 
 const defaultSettings = {
@@ -570,7 +597,15 @@ function drawScene() {
 }
 
 function drawShape(buf) {
-  const drawers = { burger: drawBurger, donut: drawDonut, leaf: drawLeaf, house: drawHouse };
+  const drawers = {
+    burger: drawBurger,
+    donut: drawDonut,
+    leaf: drawLeaf,
+    house: drawHouse,
+    cart: drawCart,
+    drone: drawDrone,
+    truck: drawTruck,
+  };
   drawers[currentShape()](buf);
 }
 
@@ -580,6 +615,9 @@ function drawShapeLabels(buf) {
     donut: drawDonutLabels,
     leaf: drawLeafLabels,
     house: drawHouseLabels,
+    cart: drawCartLabels,
+    drone: drawDroneLabels,
+    truck: drawTruckLabels,
   };
   labels[currentShape()](buf);
 }
@@ -602,11 +640,15 @@ function layerRadius(layer, angle) {
 }
 
 function fillDisc(buf, y, radius, color, fill) {
-  const center = { x: BURGER_CENTER.x, y, z: BURGER_CENTER.z };
-  for (let i = 0; i < BURGER_SEGMENTS; i += 1) {
-    const a0 = (i / BURGER_SEGMENTS) * Math.PI * 2;
-    const a1 = ((i + 1) / BURGER_SEGMENTS) * Math.PI * 2;
-    fillQuad(buf, [center, burgerPoint(a0, radius, y), burgerPoint(a1, radius, y), center], color, fill);
+  fillDiscAt(buf, BURGER_CENTER.x, y, BURGER_CENTER.z, radius, color, fill, BURGER_SEGMENTS);
+}
+
+function fillDiscAt(buf, cx, y, cz, radius, color, fill, segments = 12) {
+  const center = { x: cx, y, z: cz };
+  for (let i = 0; i < segments; i += 1) {
+    const a0 = (i / segments) * Math.PI * 2;
+    const a1 = ((i + 1) / segments) * Math.PI * 2;
+    fillQuad(buf, [center, ringPoint(a0, radius, y, cx, cz), ringPoint(a1, radius, y, cx, cz), center], color, fill);
   }
 }
 
@@ -802,6 +844,101 @@ function drawHouseLabels(buf) {
     { text: "[roof]", point: { x: 1, y: 1.7, z: 1.72 }, color: "#c23b22" },
     { text: "[door]", point: { x: 1, y: 0.3, z: 1.72 }, color: "#6b3a2a" },
     { text: "[chimney]", point: { x: 1.62, y: 1.8, z: 0.6 }, color: "#b0b0b0" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function drawCart(buf) {
+  const chrome = "#c5d0dc";
+  drawBox(buf, 0.48, 1.62, 0.36, 0.46, 0.48, 1.48, chrome, "=");
+  drawBox(buf, 0.48, 0.58, 0.46, 1.14, 0.48, 1.48, chrome, "|");
+  drawBox(buf, 1.52, 1.62, 0.46, 1.14, 0.48, 1.48, chrome, "|");
+  drawBox(buf, 0.48, 1.62, 0.46, 1.14, 0.48, 0.58, chrome, "#");
+  drawBox(buf, 0.48, 1.62, 0.46, 1.14, 1.38, 1.48, chrome, "#");
+  for (const x of [0.7, 0.95, 1.2, 1.42]) {
+    drawAsciiLine(buf, { x, y: 0.46, z: 0.55 }, { x, y: 1.1, z: 0.55 }, chrome, 0.04);
+    drawAsciiLine(buf, { x, y: 0.46, z: 1.4 }, { x, y: 1.1, z: 1.4 }, chrome, 0.04);
+  }
+  drawBox(buf, 0.52, 0.62, 0.95, 1.55, 1.42, 1.82, "#ffc857", "|");
+  drawBox(buf, 1.48, 1.58, 0.95, 1.55, 1.42, 1.82, "#ffc857", "|");
+  drawBox(buf, 0.52, 1.58, 1.48, 1.56, 1.72, 1.84, "#ffc857", "=");
+  for (const [x, z] of [
+    [0.58, 0.58],
+    [1.5, 0.58],
+    [0.58, 1.38],
+    [1.5, 1.38],
+  ]) {
+    drawBox(buf, x - 0.1, x + 0.1, 0.02, 0.34, z - 0.1, z + 0.1, "#4a5568", "o");
+  }
+}
+
+function drawCartLabels(buf) {
+  const tags = [
+    { text: "[basket]", point: { x: 1.05, y: 0.8, z: 1.62 }, color: "#c5d0dc" },
+    { text: "[handle]", point: { x: 1.05, y: 1.62, z: 1.78 }, color: "#ffc857" },
+    { text: "[wheels]", point: { x: 0.55, y: 0.18, z: 0.35 }, color: "#9aa7b5" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function drawDrone(buf) {
+  drawBox(buf, 0.78, 1.22, 0.88, 1.16, 0.78, 1.22, "#8b9aab", "#");
+  drawBox(buf, 0.9, 1.1, 0.7, 0.88, 0.9, 1.1, "#fb7185", "o");
+  const hubs = [
+    [0.32, 0.32],
+    [1.68, 0.32],
+    [0.32, 1.68],
+    [1.68, 1.68],
+  ];
+  for (const [x, z] of hubs) {
+    drawBox(buf, Math.min(1, x) - 0.04, Math.max(1, x) + 0.04, 1.0, 1.08, Math.min(1, z) - 0.04, Math.max(1, z) + 0.04, "#ffc857", "+");
+    fillDiscAt(buf, x, 1.2, z, 0.26, "#7dd3fc", "*", 10);
+    drawAsciiLine(buf, { x, y: 1.02, z }, { x, y: 0.52, z }, "#9aa7b5", 0.05);
+    drawBox(buf, x - 0.08, x + 0.08, 0.48, 0.56, z - 0.08, z + 0.08, "#4a5568", "=");
+  }
+}
+
+function drawDroneLabels(buf) {
+  const tags = [
+    { text: "[body]", point: { x: 1, y: 1.05, z: 1.32 }, color: "#c5d0dc" },
+    { text: "[rotor]", point: { x: 1.68, y: 1.32, z: 0.32 }, color: "#7dd3fc" },
+    { text: "[cam]", point: { x: 1, y: 0.72, z: 1.18 }, color: "#fb7185" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function drawTruck(buf) {
+  drawBox(buf, 0.28, 0.86, 0.38, 1.42, 0.52, 1.48, "#e63946", "#");
+  drawBox(buf, 0.42, 0.82, 0.92, 1.28, 1.42, 1.52, "#7dd3fc", "o");
+  drawBox(buf, 0.86, 1.18, 0.38, 0.82, 0.58, 1.42, "#c23b22", "=");
+  drawBox(buf, 1.12, 1.88, 0.38, 1.08, 0.48, 1.52, "#9aa7b5", "#");
+  drawBox(buf, 1.16, 1.84, 1.08, 1.16, 0.52, 1.48, "#6b7280", "=");
+  for (const [x, z] of [
+    [0.52, 0.5],
+    [0.52, 1.5],
+    [1.38, 0.5],
+    [1.38, 1.5],
+    [1.72, 0.5],
+    [1.72, 1.5],
+  ]) {
+    drawBox(buf, x - 0.12, x + 0.12, 0.04, 0.38, z - 0.12, z + 0.12, "#2d2d2d", "o");
+  }
+}
+
+function drawTruckLabels(buf) {
+  const tags = [
+    { text: "[cab]", point: { x: 0.55, y: 1.2, z: 1.62 }, color: "#e63946" },
+    { text: "[bed]", point: { x: 1.5, y: 0.8, z: 1.62 }, color: "#9aa7b5" },
+    { text: "[wheels]", point: { x: 1.38, y: 0.18, z: 0.28 }, color: "#c5d0dc" },
   ];
   for (const tag of tags) {
     const cell = toCell(tag.point);
