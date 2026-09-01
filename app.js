@@ -47,7 +47,7 @@ const SHAPE_INFO = {
     noun: "leaf",
     title: "Plot ideas on a 0-2 leaf",
     eyebrow: "3 Axis Notes // ASCII Leaf",
-    intro: "Add notes with scores from 0 to 2. Each point lands along the blade from stem to tip, inside one of eight labeled low/high octants.",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the red maple leaf, inside one of eight labeled low/high octants.",
     space: "0-2 leaf space",
   },
   house: {
@@ -907,40 +907,103 @@ function drawDonutLabels(buf) {
   }
 }
 
-function leafPoint(t, s) {
-  const y = 0.1 + t * 1.84;
-  const width = Math.sin(Math.PI * Math.max(0.02, Math.min(0.98, t))) * (0.62 + 0.1 * Math.sin(t * 10));
+const MAPLE_SVG = [
+  [512, 32],
+  [599, 249],
+  [837, 194],
+  [720, 394],
+  [944, 487],
+  [720, 580],
+  [837, 780],
+  [599, 725],
+  [512, 942],
+  [425, 725],
+  [187, 780],
+  [304, 580],
+  [80, 487],
+  [304, 394],
+  [187, 194],
+  [425, 249],
+];
+
+function mapleWorld(sx, sy, z = 1) {
   return {
-    x: 1 + s * width,
-    y,
-    z: 1 + 0.2 * Math.sin(Math.PI * t) + s * s * 0.05,
+    x: 1 + ((sx - 512) / 432) * 0.86,
+    y: 0.14 + (1 - (sy - 32) / 910) * 1.72,
+    z,
   };
 }
 
+const MAPLE_POLY = MAPLE_SVG.map(([sx, sy]) => mapleWorld(sx, sy));
+
+function pointInMaple(x, y) {
+  let inside = false;
+  for (let i = 0, j = MAPLE_POLY.length - 1; i < MAPLE_POLY.length; j = i, i += 1) {
+    const a = MAPLE_POLY[i];
+    const b = MAPLE_POLY[j];
+    if ((a.y > y) !== (b.y > y) && x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
 function drawLeaf(buf) {
-  const tSeg = 14;
-  const sSeg = 8;
-  for (let i = 0; i < tSeg; i += 1) {
-    for (let j = 0; j < sSeg; j += 1) {
-      const t0 = i / tSeg;
-      const t1 = (i + 1) / tSeg;
-      const s0 = -1 + (2 * j) / sSeg;
-      const s1 = -1 + (2 * (j + 1)) / sSeg;
-      const color = Math.abs((s0 + s1) / 2) < 0.12 ? "#2f7a3a" : "#5dce6a";
-      const fill = Math.abs((s0 + s1) / 2) < 0.12 ? "|" : "~";
-      fillQuad(buf, [leafPoint(t0, s0), leafPoint(t1, s0), leafPoint(t1, s1), leafPoint(t0, s1)], color, fill);
+  const red = "#ff0000";
+  const redDim = "#c40000";
+  const zFront = 1.04;
+  const zBack = 0.96;
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const p of MAPLE_POLY) {
+    minX = Math.min(minX, p.x);
+    maxX = Math.max(maxX, p.x);
+    minY = Math.min(minY, p.y);
+    maxY = Math.max(maxY, p.y);
+  }
+
+  const nx = 32;
+  const ny = 36;
+  for (let i = 0; i < nx; i += 1) {
+    for (let j = 0; j < ny; j += 1) {
+      const x0 = minX + ((maxX - minX) * i) / nx;
+      const x1 = minX + ((maxX - minX) * (i + 1)) / nx;
+      const y0 = minY + ((maxY - minY) * j) / ny;
+      const y1 = minY + ((maxY - minY) * (j + 1)) / ny;
+      if (!pointInMaple((x0 + x1) / 2, (y0 + y1) / 2)) continue;
+      const q00 = { x: x0, y: y0, z: zFront };
+      const q10 = { x: x1, y: y0, z: zFront };
+      const q11 = { x: x1, y: y1, z: zFront };
+      const q01 = { x: x0, y: y1, z: zFront };
+      fillQuad(buf, [q00, q10, q11, q01], red, "#");
+      fillQuad(
+        buf,
+        [
+          { ...q00, z: zBack },
+          { ...q01, z: zBack },
+          { ...q11, z: zBack },
+          { ...q10, z: zBack },
+        ],
+        redDim,
+        "#",
+      );
     }
   }
 
-  drawAsciiLine(buf, { x: 1, y: 0.02, z: 1 }, { x: 1, y: 0.18, z: 1 }, "#8b5a2b", 0.08);
-  drawAsciiLine(buf, leafPoint(0.02, 0), leafPoint(0.98, 0), "#2f7a3a", 0.08);
+  for (let i = 0; i < MAPLE_POLY.length; i += 1) {
+    const a = MAPLE_POLY[i];
+    const b = MAPLE_POLY[(i + 1) % MAPLE_POLY.length];
+    drawAsciiLine(buf, { ...a, z: 1 }, { ...b, z: 1 }, red, 0.1);
+  }
 }
 
 function drawLeafLabels(buf) {
   const tags = [
-    { text: "[stem]", point: { x: 1, y: 0.08, z: 1.12 }, color: "#8b5a2b" },
-    { text: "[blade]", point: leafPoint(0.45, 0.9), color: "#5dce6a" },
-    { text: "[tip]", point: leafPoint(0.96, 0), color: "#7dff6b" },
+    { text: "[stem]", point: mapleWorld(512, 910), color: "#ff4d4d" },
+    { text: "[tip]", point: mapleWorld(512, 48), color: "#ff4d4d" },
+    { text: "[lobe]", point: mapleWorld(900, 487), color: "#ff4d4d" },
   ];
   for (const tag of tags) {
     const cell = toCell(tag.point);
