@@ -1,6 +1,6 @@
 const STORAGE_KEY = "three-axis-notes-settings";
 const BURGER_CENTER = { x: 1, z: 1 };
-const BURGER_SEGMENTS = 18;
+const BURGER_SEGMENTS = 28;
 const BURGER_LAYERS = [
   { name: "plate", y0: -0.04, y1: 0.02, radius: 1.12, color: "#9aa7b5", fill: "-", plate: true },
   { name: "bottom bun", y0: 0.02, y1: 0.38, radius: 0.94, color: "#d9a441", fill: "O" },
@@ -433,10 +433,13 @@ function setupCanvasSize() {
   canvas.width = Math.max(1, Math.floor(rect.width * dpr));
   canvas.height = Math.max(1, Math.floor(rect.height * dpr));
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  cellH = Math.max(10, Math.min(16, Math.floor(rect.height / 46)));
-  cellW = Math.max(6, Math.floor(cellH * 0.62));
-  gridCols = Math.max(24, Math.floor(rect.width / cellW));
-  gridRows = Math.max(16, Math.floor(rect.height / cellH));
+  ctx.imageSmoothingEnabled = false;
+  cellH = Math.max(6, Math.min(9, Math.floor(rect.height / 96)));
+  ctx.font = `${Math.max(5, Math.floor(cellH * 0.95))}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+  const measured = ctx.measureText("0").width;
+  cellW = Math.max(4, Math.round(measured) || Math.floor(cellH * 0.6));
+  gridCols = Math.max(48, Math.floor(rect.width / cellW));
+  gridRows = Math.max(32, Math.floor(rect.height / cellH));
   drawScene();
 }
 
@@ -464,7 +467,7 @@ function project(point) {
   const rect = canvas.getBoundingClientRect();
   const rotated = rotate(point);
   const distance = 4.6;
-  const scale = Math.min(rect.width, rect.height) * 0.34 * zoom;
+  const scale = Math.min(rect.width, rect.height) * 0.38 * zoom;
   const perspective = distance / (distance - rotated.z);
 
   return {
@@ -596,7 +599,7 @@ function writeText(buf, text, x, y, color, depth = 8) {
 function blit(buf, rect) {
   ctx.fillStyle = "#05070a";
   ctx.fillRect(0, 0, rect.width, rect.height);
-  ctx.font = `${Math.floor(cellH * 0.92)}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+  ctx.font = `${Math.max(5, Math.floor(cellH * 0.95))}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
 
@@ -676,7 +679,7 @@ function fillDisc(buf, y, radius, color, fill) {
   fillDiscAt(buf, BURGER_CENTER.x, y, BURGER_CENTER.z, radius, color, fill, BURGER_SEGMENTS);
 }
 
-function fillDiscAt(buf, cx, y, cz, radius, color, fill, segments = 12) {
+function fillDiscAt(buf, cx, y, cz, radius, color, fill, segments = 18) {
   const center = { x: cx, y, z: cz };
   for (let i = 0; i < segments; i += 1) {
     const a0 = (i / segments) * Math.PI * 2;
@@ -685,7 +688,7 @@ function fillDiscAt(buf, cx, y, cz, radius, color, fill, segments = 12) {
   }
 }
 
-function stackDiscs(buf, cx, y0, y1, cz, r0, r1, color, fill, layers = 8, segments = 12) {
+function stackDiscs(buf, cx, y0, y1, cz, r0, r1, color, fill, layers = 12, segments = 16) {
   for (let i = 0; i < layers; i += 1) {
     const t = i / Math.max(1, layers - 1);
     fillDiscAt(buf, cx, y0 + (y1 - y0) * t, cz, r0 + (r1 - r0) * t, color, fill, segments);
@@ -707,8 +710,8 @@ function ellipsoidPoint(u, v, cx, cy, cz, rx, ry, rz, bulge = 0) {
 }
 
 function fillEllipsoid(buf, cx, cy, cz, rx, ry, rz, color, fill = "O", opts = {}) {
-  const uSeg = opts.uSeg || 16;
-  const vSeg = opts.vSeg || 12;
+  const uSeg = opts.uSeg || 24;
+  const vSeg = opts.vSeg || 18;
   const bulge = opts.bulge || 0;
   const hi = opts.highlight || "#fff6e8";
   const gloss = opts.gloss ?? 0.48;
@@ -819,7 +822,7 @@ function drawWheelYZ(buf, x, cy, cz, radius, thickness = 0.08, caster = false) {
   const tire = "#3a3a3a";
   const hub = "#9aa3ad";
   const fork = "#c5cdd4";
-  const segments = 11;
+  const segments = 16;
   for (const ox of [-thickness / 2, thickness / 2]) {
     const wx = x + ox;
     const center = { x: wx, y: cy, z: cz };
@@ -845,7 +848,7 @@ function drawWheelYZ(buf, x, cy, cz, radius, thickness = 0.08, caster = false) {
 function drawWheelXY(buf, cx, cy, z, radius, thickness = 0.1) {
   const tire = "#1a1a1a";
   const rim = "#2e2e32";
-  const segments = 11;
+  const segments = 16;
   for (const oz of [-thickness / 2, thickness / 2]) {
     const wz = z + oz;
     const center = { x: cx, y: cy, z: wz };
@@ -951,8 +954,8 @@ function torusPoint(u, v, R = 0.72, r = 0.3) {
 }
 
 function drawDonut(buf) {
-  const uSeg = 20;
-  const vSeg = 12;
+  const uSeg = 32;
+  const vSeg = 18;
   for (let i = 0; i < uSeg; i += 1) {
     for (let j = 0; j < vSeg; j += 1) {
       const u0 = (i / uSeg) * Math.PI * 2;
@@ -1090,8 +1093,8 @@ function drawLeaf(buf) {
     minY = Math.min(minY, p.y);
     maxY = Math.max(maxY, p.y);
   }
-  const nx = 30;
-  const ny = 34;
+  const nx = 48;
+  const ny = 54;
   for (let i = 0; i < nx; i += 1) {
     for (let j = 0; j < ny; j += 1) {
       const xa = minX + ((maxX - minX) * i) / nx;
@@ -1406,7 +1409,7 @@ function torusXZ(u, v, cx, y, cz, R, r) {
   };
 }
 
-function drawTorusXZ(buf, cx, y, cz, R, r, color, fill, uSeg = 14, vSeg = 7) {
+function drawTorusXZ(buf, cx, y, cz, R, r, color, fill, uSeg = 20, vSeg = 12) {
   for (let i = 0; i < uSeg; i += 1) {
     for (let j = 0; j < vSeg; j += 1) {
       const u0 = (i / uSeg) * Math.PI * 2;
@@ -1428,7 +1431,7 @@ function drawTorusXZ(buf, cx, y, cz, R, r, color, fill, uSeg = 14, vSeg = 7) {
   }
 }
 
-function fillDiscFacingZ(buf, cx, cy, z, radius, color, fill, segments = 8) {
+function fillDiscFacingZ(buf, cx, cy, z, radius, color, fill, segments = 14) {
   const center = { x: cx, y: cy, z };
   for (let i = 0; i < segments; i += 1) {
     const a0 = (i / segments) * Math.PI * 2;
@@ -1726,7 +1729,7 @@ function drawWolf(buf) {
   const pink = "#e89aa8";
   const cx = 1;
   const cz = 1.12;
-  const gloss = { highlight: creamHi, bulge: 0.32, uSeg: 18, vSeg: 14, gloss: 0.38, hot: 0.68 };
+  const gloss = { highlight: creamHi, bulge: 0.32, uSeg: 24, vSeg: 18, gloss: 0.38, hot: 0.68 };
 
   fillEllipsoid(buf, cx - 0.3, 0.86, cz + 0.16, 0.52, 0.5, 0.5, cream, "O", gloss);
   fillEllipsoid(buf, cx + 0.3, 0.86, cz + 0.16, 0.52, 0.5, 0.5, cream, "O", gloss);
@@ -1905,8 +1908,8 @@ function flatCorner(u, v) {
 }
 
 function drawFlat(buf) {
-  const nx = 46;
-  const ny = 56;
+  const nx = 72;
+  const ny = 90;
   for (let i = 0; i < nx; i += 1) {
     for (let j = 0; j < ny; j += 1) {
       const u0 = i / nx;
