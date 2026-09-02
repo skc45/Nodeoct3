@@ -176,6 +176,15 @@ const SHAPE_INFO = {
     intro: "Add notes with scores from 0 to 2. Each point lands on the beach fennec, inside one of eight labeled low/high octants.",
     space: "0-2 fennec space",
   },
+  moth: {
+    id: "moth",
+    label: "Moth",
+    noun: "moth",
+    title: "Plot ideas on a 0-2 moth pair",
+    eyebrow: "3 Axis Notes // ASCII Moth",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the moth pair, inside one of eight labeled low/high octants.",
+    space: "0-2 moth space",
+  },
 };
 
 const defaultSettings = {
@@ -706,6 +715,7 @@ function drawShape(buf) {
     crystal: drawCrystal,
     mega: drawMega,
     fennec: drawFennec,
+    moth: drawMoth,
   };
   drawers[currentShape()](buf);
 }
@@ -729,6 +739,7 @@ function drawShapeLabels(buf) {
     crystal: drawCrystalLabels,
     mega: drawMegaLabels,
     fennec: drawFennecLabels,
+    moth: drawMothLabels,
   };
   labels[currentShape()](buf);
 }
@@ -2244,6 +2255,67 @@ function drawFennecLabels(buf) {
     { text: "[tail]", point: { x: 0.18, y: 0.48, z: 0.68 }, color: "#f6ead8" },
     { text: "[chair]", point: { x: 1.0, y: 0.28, z: 1.52 }, color: "#c48a4a" },
     { text: "[beach]", point: { x: 1.55, y: 0.62, z: 0.72 }, color: "#7ec8e8" },
+  ]);
+}
+
+function drawMoth(buf) {
+  const mint = "#b8e0c0";
+  const mintHair = "#7dcc9a";
+  const mintHi = "#e8ffe8";
+  const pale = "#f3d2c4";
+  const paleHi = "#ffe8dc";
+  const pinkHair = "#e8a0c0";
+  const purple = "#8b4a8a";
+  const fur = "#f4f6f2";
+  const glossMint = { highlight: mintHi, bulge: 0.36, uSeg: 24, vSeg: 18, gloss: 0.32, hot: 0.62 };
+  const glossPale = { highlight: paleHi, bulge: 0.36, uSeg: 24, vSeg: 18, gloss: 0.32, hot: 0.62 };
+
+  drawBox(buf, 0.04, 1.96, 0.08, 1.92, 0.08, 0.42, "#1a1210", "#");
+  drawBox(buf, 0.12, 0.28, 0.72, 1.22, 0.28, 0.48, "#3d6b3a", "=");
+  drawBox(buf, 0.32, 0.48, 0.82, 1.38, 0.26, 0.46, "#8a4a18", "+");
+  drawBox(buf, 1.52, 1.68, 0.78, 1.32, 0.26, 0.46, "#c45a2a", "+");
+  drawBox(buf, 1.72, 1.88, 0.68, 1.18, 0.28, 0.48, "#2a4a6a", "=");
+  drawBox(buf, 0.08, 1.92, 0.08, 0.28, 0.4, 0.7, "#2a2018", "#");
+
+  fillEllipsoid(buf, 0.52, 0.72, 1.28, 0.62, 0.55, 0.48, mint, "O", glossMint);
+  fillEllipsoid(buf, 1.48, 0.72, 1.28, 0.62, 0.55, 0.48, pale, "O", glossPale);
+  fillEllipsoid(buf, 0.72, 0.68, 1.48, 0.42, 0.38, 0.28, mint, "O", glossMint);
+  fillEllipsoid(buf, 1.28, 0.68, 1.48, 0.42, 0.38, 0.28, pale, "O", glossPale);
+
+  fillEllipsoid(buf, 0.7, 1.08, 1.18, 0.22, 0.18, 0.2, fur, "@", { highlight: "#ffffff", bulge: 0.22 });
+  fillEllipsoid(buf, 0.55, 1.18, 1.22, 0.18, 0.14, 0.16, fur, "O", { highlight: "#ffffff", bulge: 0.18 });
+  fillEllipsoid(buf, 1.3, 1.08, 1.16, 0.16, 0.12, 0.14, pinkHair, "#");
+
+  fillEllipsoid(buf, 0.62, 1.42, 1.22, 0.22, 0.22, 0.2, mint, "O", glossMint);
+  fillEllipsoid(buf, 1.38, 1.42, 1.22, 0.22, 0.22, 0.2, pale, "O", glossPale);
+  fillEllipsoid(buf, 0.58, 1.52, 1.08, 0.2, 0.18, 0.16, mintHair, "@");
+  fillEllipsoid(buf, 0.42, 1.28, 1.02, 0.16, 0.22, 0.12, mintHair, "#");
+  fillEllipsoid(buf, 0.38, 0.92, 0.98, 0.14, 0.22, 0.1, mintHair, "#");
+  fillEllipsoid(buf, 1.42, 1.54, 1.08, 0.2, 0.2, 0.16, pinkHair, "@");
+  fillEllipsoid(buf, 1.58, 1.32, 1.02, 0.16, 0.24, 0.12, pinkHair, "#");
+  fillEllipsoid(buf, 1.62, 0.96, 0.98, 0.14, 0.22, 0.1, purple, "#");
+
+  fillEllipsoid(buf, 0.52, 1.78, 1.18, 0.04, 0.22, 0.04, "#2a2a28", "#");
+  fillEllipsoid(buf, 0.7, 1.82, 1.16, 0.04, 0.24, 0.04, "#2a2a28", "#");
+  fillEllipsoid(buf, 1.28, 1.8, 1.16, 0.035, 0.22, 0.035, "#d47898", "#");
+  fillEllipsoid(buf, 1.46, 1.84, 1.14, 0.035, 0.24, 0.035, "#d47898", "#");
+
+  fillDiscAt(buf, 0.56, 1.44, 1.4, 0.045, "#7dcc9a", "*", 6);
+  fillDiscAt(buf, 0.68, 1.44, 1.4, 0.045, "#7dcc9a", "*", 6);
+  fillDiscAt(buf, 1.3, 1.44, 1.4, 0.045, "#e6c84a", "*", 6);
+  fillDiscAt(buf, 1.44, 1.44, 1.4, 0.045, "#e6c84a", "*", 6);
+  fillDiscAt(buf, 0.62, 1.36, 1.42, 0.03, "#111111", "*", 5);
+  fillDiscAt(buf, 1.38, 1.36, 1.42, 0.03, "#111111", "*", 5);
+  fillEllipsoid(buf, 0.78, 1.32, 1.38, 0.06, 0.04, 0.08, mintHair, "+");
+  fillEllipsoid(buf, 1.22, 1.32, 1.38, 0.06, 0.04, 0.08, pale, "+");
+}
+
+function drawMothLabels(buf) {
+  writeTags(buf, [
+    { text: "[antennae]", point: { x: 0.62, y: 1.9, z: 1.28 }, color: "#7dcc9a" },
+    { text: "[fur]", point: { x: 0.55, y: 1.18, z: 1.42 }, color: "#f4f6f2" },
+    { text: "[hair]", point: { x: 1.62, y: 1.2, z: 1.08 }, color: "#e8a0c0" },
+    { text: "[bar]", point: { x: 1.72, y: 1.7, z: 0.5 }, color: "#8a4a18" },
   ]);
 }
 
