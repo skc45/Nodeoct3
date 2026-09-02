@@ -185,6 +185,15 @@ const SHAPE_INFO = {
     intro: "Add notes with scores from 0 to 2. Each point lands on the moth pair, inside one of eight labeled low/high octants.",
     space: "0-2 moth space",
   },
+  loaf: {
+    id: "loaf",
+    label: "Loaf",
+    noun: "loaf",
+    title: "Plot ideas on a 0-2 loaf",
+    eyebrow: "3 Axis Notes // ASCII Loaf",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the baguette loaf, inside one of eight labeled low/high octants.",
+    space: "0-2 loaf space",
+  },
 };
 
 const defaultSettings = {
@@ -716,6 +725,7 @@ function drawShape(buf) {
     mega: drawMega,
     fennec: drawFennec,
     moth: drawMoth,
+    loaf: drawLoaf,
   };
   drawers[currentShape()](buf);
 }
@@ -740,6 +750,7 @@ function drawShapeLabels(buf) {
     mega: drawMegaLabels,
     fennec: drawFennecLabels,
     moth: drawMothLabels,
+    loaf: drawLoafLabels,
   };
   labels[currentShape()](buf);
 }
@@ -2316,6 +2327,77 @@ function drawMothLabels(buf) {
     { text: "[fur]", point: { x: 0.55, y: 1.18, z: 1.42 }, color: "#f4f6f2" },
     { text: "[hair]", point: { x: 1.62, y: 1.2, z: 1.08 }, color: "#e8a0c0" },
     { text: "[bar]", point: { x: 1.72, y: 1.7, z: 0.5 }, color: "#8a4a18" },
+  ]);
+}
+
+function drawLoaf(buf) {
+  const crust = "#c47a32";
+  const crustHi = "#e8b86d";
+  const crumb = "#e8c48a";
+  const score = "#6b3319";
+  const skin = "#f3d8d0";
+  const blush = "#e8a0a8";
+  const hair = "#2a1c16";
+  const mauve = "#b8a4b0";
+  const glossBread = { highlight: crustHi, bulge: 0.18, uSeg: 24, vSeg: 16, gloss: 0.34, hot: 0.64 };
+  const glossSkin = { highlight: "#fff0ea", bulge: 0.16, uSeg: 20, vSeg: 14, gloss: 0.4, hot: 0.7 };
+
+  drawBox(buf, 0.18, 1.82, 0.22, 1.78, 0.12, 0.48, mauve, "=");
+  fillDiscAt(buf, 1, 0.18, 1.05, 0.7, "#d8c8c4", ".", 12);
+
+  fillEllipsoid(buf, 1, 0.48, 1.12, 0.92, 0.22, 0.28, crust, "O", glossBread);
+  fillEllipsoid(buf, 0.28, 0.5, 1.1, 0.22, 0.16, 0.2, crust, "#", glossBread);
+  fillEllipsoid(buf, 1.72, 0.5, 1.1, 0.22, 0.16, 0.2, crust, "#", glossBread);
+  fillEllipsoid(buf, 1, 0.58, 1.18, 0.78, 0.1, 0.18, crumb, "=", { highlight: "#f4d8a8", bulge: 0.08 });
+
+  const scores = [
+    [0.42, 0.66],
+    [0.68, 0.68],
+    [0.94, 0.7],
+    [1.2, 0.68],
+    [1.46, 0.66],
+  ];
+  for (const [x, y] of scores) {
+    drawAsciiLine(buf, { x: x - 0.08, y, z: 1.32 }, { x: x + 0.1, y: y - 0.04, z: 1.34 }, score, 0.05);
+  }
+
+  fillEllipsoid(buf, 0.88, 0.82, 1.22, 0.16, 0.12, 0.14, skin, "O", glossSkin);
+  fillEllipsoid(buf, 1.12, 0.8, 1.28, 0.2, 0.1, 0.12, skin, "O", glossSkin);
+  fillEllipsoid(buf, 1.32, 0.72, 1.22, 0.16, 0.08, 0.1, skin, "#", glossSkin);
+  fillEllipsoid(buf, 0.72, 0.72, 1.08, 0.12, 0.1, 0.1, skin, "O", glossSkin);
+  fillEllipsoid(buf, 0.58, 0.62, 1.0, 0.1, 0.08, 0.08, skin, "#");
+
+  fillEllipsoid(buf, 0.98, 1.02, 1.16, 0.14, 0.2, 0.12, skin, "O", glossSkin);
+  fillEllipsoid(buf, 1.18, 0.92, 1.08, 0.08, 0.14, 0.08, skin, "#", glossSkin);
+  fillEllipsoid(buf, 0.78, 0.92, 1.28, 0.08, 0.12, 0.08, skin, "#", glossSkin);
+  fillDiscAt(buf, 0.76, 0.82, 1.36, 0.045, skin, "o", 6);
+  fillDiscAt(buf, 1.2, 0.78, 1.02, 0.045, skin, "o", 6);
+
+  fillEllipsoid(buf, 1.22, 1.28, 1.12, 0.12, 0.12, 0.12, skin, "O", glossSkin);
+  fillDiscAt(buf, 1.22, 1.26, 1.22, 0.035, blush, "*", 5);
+  fillDiscAt(buf, 1.18, 1.3, 1.22, 0.025, "#111111", "*", 4);
+  fillDiscAt(buf, 1.26, 1.3, 1.22, 0.025, "#111111", "*", 4);
+  fillEllipsoid(buf, 1.22, 1.38, 1.08, 0.14, 0.1, 0.12, hair, "#");
+  fillEllipsoid(buf, 1.28, 1.52, 1.08, 0.03, 0.1, 0.03, hair, "#");
+  fillEllipsoid(buf, 1.32, 1.32, 1.02, 0.08, 0.1, 0.06, hair, "#");
+
+  for (const [x, y, z] of [
+    [0.92, 1.0, 1.26],
+    [1.04, 0.96, 1.24],
+    [1.16, 1.22, 1.2],
+    [0.84, 0.78, 1.3],
+    [1.28, 0.74, 1.18],
+  ]) {
+    fillDiscAt(buf, x, y, z, 0.018, "#5a3a28", "*", 4);
+  }
+}
+
+function drawLoafLabels(buf) {
+  writeTags(buf, [
+    { text: "[loaf]", point: { x: 0.28, y: 0.55, z: 1.32 }, color: "#c47a32" },
+    { text: "[crust]", point: { x: 1.7, y: 0.62, z: 1.28 }, color: "#e8b86d" },
+    { text: "[score]", point: { x: 1.0, y: 0.78, z: 1.42 }, color: "#6b3319" },
+    { text: "[hair]", point: { x: 1.28, y: 1.58, z: 1.2 }, color: "#2a1c16" },
   ]);
 }
 
