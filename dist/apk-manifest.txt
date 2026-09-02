@@ -1,8 +1,8 @@
 package=com.skc45.nodeoct3
 appName=ASCII Notes
-versionCode=19
-versionName=2.8
+versionCode=20
+versionName=2.9
 apk=dist/nodeoct3-ascii.apk
-sha256=60b2fb197ad44a5745e930bde7387729f1415756e6b38f05db24a178a0c10fdc
-git=4dbeb5ec1051308056b38050403183d1145e6ba9+dirty
-built=2026-09-01T22:48:04Z
+sha256=e771eca2e2af8ad91faafff54c36a4839f9b6ea0e2cd61724d338858d0d65719
+git=2c1f1a03780c0c1f931accb0b79fa993d2a23985+dirty
+built=2026-09-02T00:33:17Z
