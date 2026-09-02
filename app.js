@@ -167,6 +167,15 @@ const SHAPE_INFO = {
     intro: "Add notes with scores from 0 to 2. Each point lands on the giant teal figure, inside one of eight labeled low/high octants.",
     space: "0-2 mega space",
   },
+  fennec: {
+    id: "fennec",
+    label: "Fennec",
+    noun: "fennec",
+    title: "Plot ideas on a 0-2 fennec",
+    eyebrow: "3 Axis Notes // ASCII Fennec",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the beach fennec, inside one of eight labeled low/high octants.",
+    space: "0-2 fennec space",
+  },
 };
 
 const defaultSettings = {
@@ -696,6 +705,7 @@ function drawShape(buf) {
     lucoa: drawLucoa,
     crystal: drawCrystal,
     mega: drawMega,
+    fennec: drawFennec,
   };
   drawers[currentShape()](buf);
 }
@@ -718,6 +728,7 @@ function drawShapeLabels(buf) {
     lucoa: drawLucoaLabels,
     crystal: drawCrystalLabels,
     mega: drawMegaLabels,
+    fennec: drawFennecLabels,
   };
   labels[currentShape()](buf);
 }
@@ -2150,6 +2161,89 @@ function drawMegaLabels(buf) {
     { text: "[collar]", point: { x: 1, y: 1.52, z: 1.32 }, color: "#d0d0d6" },
     { text: "[01]", point: { x: 0.22, y: 1.38, z: 1.58 }, color: "#e53935" },
     { text: "[stone]", point: { x: 1.7, y: 1.7, z: 0.5 }, color: "#8b7a62" },
+  ]);
+}
+
+function drawFennec(buf) {
+  const tan = "#d4a06a";
+  const tanDark = "#b07840";
+  const cream = "#f6ead8";
+  const pink = "#e8a8a0";
+  const wood = "#8b5a2b";
+  const woodHi = "#c48a4a";
+  const ocean = "#3d8ec9";
+  const oceanHi = "#7ec8e8";
+  const sand = "#e8d4a8";
+  const sky = "#9ec8e8";
+  const sun = "#fff6c8";
+  const black = "#1a1a1e";
+  const gloss = { highlight: "#f0d0a0", bulge: 0.28, uSeg: 22, vSeg: 16, gloss: 0.36, hot: 0.66 };
+
+  fillDiscAt(buf, 1, 1.72, 0.42, 0.72, sky, "~", 14);
+  fillDiscAt(buf, 0.42, 1.78, 0.38, 0.16, sun, "*", 12);
+  drawBox(buf, 0.12, 0.72, 0.72, 1.28, 0.28, 0.55, "#6a7a6a", "#");
+  drawBox(buf, 1.18, 1.88, 0.62, 1.18, 0.26, 0.52, "#8a9a88", "=");
+  drawBox(buf, 0.04, 1.96, 0.42, 0.78, 0.48, 0.92, ocean, "~");
+  drawBox(buf, 0.08, 1.92, 0.52, 0.7, 0.62, 0.98, oceanHi, "~");
+  drawBox(buf, 0.02, 1.98, 0.02, 0.28, 0.55, 1.72, sand, ".");
+
+  drawBox(buf, 0.28, 1.72, 0.08, 0.22, 0.92, 1.02, wood, "#");
+  drawBox(buf, 0.28, 1.72, 0.08, 0.22, 1.32, 1.42, wood, "#");
+  drawBox(buf, 0.32, 1.68, 0.34, 0.42, 0.88, 1.46, woodHi, "=");
+  for (const x of [0.38, 0.58, 0.78, 0.98, 1.18, 1.38, 1.56]) {
+    drawBox(buf, x, x + 0.1, 0.42, 0.52, 0.86, 1.48, wood, "#");
+  }
+  drawBox(buf, 1.52, 1.78, 0.48, 0.78, 0.9, 1.44, woodHi, "=");
+
+  fillEllipsoid(buf, 0.62, 0.62, 1.18, 0.32, 0.22, 0.26, tan, "O", gloss);
+  fillEllipsoid(buf, 0.92, 0.68, 1.2, 0.36, 0.2, 0.24, tan, "O", gloss);
+  fillEllipsoid(buf, 1.18, 0.74, 1.22, 0.28, 0.2, 0.22, tan, "O", gloss);
+  fillEllipsoid(buf, 0.92, 0.72, 1.34, 0.22, 0.14, 0.12, cream, "+", { highlight: "#fff8ee", bulge: 0.16 });
+  fillEllipsoid(buf, 0.7, 0.7, 1.36, 0.12, 0.1, 0.1, black, "#");
+  fillEllipsoid(buf, 1.08, 0.74, 1.36, 0.12, 0.08, 0.08, black, "#");
+
+  fillEllipsoid(buf, 0.42, 0.52, 1.28, 0.2, 0.16, 0.16, tan, "O", gloss);
+  fillEllipsoid(buf, 0.28, 0.42, 1.38, 0.16, 0.14, 0.14, tan, "#", gloss);
+  fillEllipsoid(buf, 0.48, 0.48, 1.08, 0.16, 0.14, 0.14, tan, "O", gloss);
+  fillEllipsoid(buf, 0.38, 0.38, 0.98, 0.12, 0.1, 0.12, tan, "#");
+
+  fillEllipsoid(buf, 1.22, 0.82, 1.08, 0.1, 0.16, 0.1, tan, "#", gloss);
+  fillEllipsoid(buf, 0.72, 0.78, 1.42, 0.1, 0.14, 0.1, tan, "#", gloss);
+  fillDiscAt(buf, 0.68, 0.72, 1.52, 0.05, cream, "o", 6);
+
+  fillEllipsoid(buf, 1.38, 0.88, 1.22, 0.18, 0.16, 0.16, tan, "O", gloss);
+  fillEllipsoid(buf, 1.4, 0.86, 1.36, 0.1, 0.08, 0.1, cream, "o", { highlight: "#fff8ee" });
+  fillDiscAt(buf, 1.4, 0.84, 1.46, 0.035, "#1a120e", "*", 5);
+  fillDiscAt(buf, 1.34, 0.92, 1.38, 0.03, "#5a3018", "*", 5);
+  fillDiscAt(buf, 1.46, 0.92, 1.38, 0.03, "#5a3018", "*", 5);
+  fillEllipsoid(buf, 1.38, 1.02, 1.22, 0.12, 0.04, 0.08, black, "=");
+
+  fillEllipsoid(buf, 1.22, 1.42, 1.18, 0.12, 0.38, 0.08, tan, "#", gloss);
+  fillEllipsoid(buf, 1.52, 1.46, 1.18, 0.12, 0.4, 0.08, tan, "#", gloss);
+  fillEllipsoid(buf, 1.22, 1.44, 1.24, 0.07, 0.3, 0.04, pink, "+");
+  fillEllipsoid(buf, 1.52, 1.48, 1.24, 0.07, 0.32, 0.04, pink, "+");
+  fillEllipsoid(buf, 1.22, 1.68, 1.18, 0.1, 0.08, 0.06, cream, "o");
+  fillEllipsoid(buf, 1.52, 1.74, 1.18, 0.1, 0.08, 0.06, cream, "o");
+
+  const tail = [
+    { x: 0.48, y: 0.68, z: 0.98, rx: 0.16, ry: 0.14, rz: 0.16, color: tan },
+    { x: 0.28, y: 0.58, z: 0.86, rx: 0.2, ry: 0.16, rz: 0.18, color: tanDark },
+    { x: 0.18, y: 0.42, z: 0.78, rx: 0.16, ry: 0.14, rz: 0.16, color: cream },
+  ];
+  for (const p of tail) {
+    fillEllipsoid(buf, p.x, p.y, p.z, p.rx, p.ry, p.rz, p.color, p.color === cream ? "O" : "#", {
+      bulge: 0.22,
+      highlight: p.color === cream ? "#fff8ee" : "#f0d0a0",
+    });
+  }
+}
+
+function drawFennecLabels(buf) {
+  writeTags(buf, [
+    { text: "[ears]", point: { x: 1.38, y: 1.82, z: 1.28 }, color: "#e8a8a0" },
+    { text: "[tail]", point: { x: 0.18, y: 0.48, z: 0.68 }, color: "#f6ead8" },
+    { text: "[chair]", point: { x: 1.0, y: 0.28, z: 1.52 }, color: "#c48a4a" },
+    { text: "[beach]", point: { x: 1.55, y: 0.62, z: 0.72 }, color: "#7ec8e8" },
   ]);
 }
 
