@@ -1,0 +1,8 @@
+package=com.skc45.nodeoct3
+appName=ASCII Notes
+versionCode=23
+versionName=2.12
+apk=dist/nodeoct3-ascii.apk
+sha256=a7f87d0af8f17c72937367ed0fcf9a71ac4bf925aae891642d77a457d8634608
+git=bcbfa799217a498394ec69fbe5d195ed4083370e+dirty
+built=2026-09-03T20:57:31Z

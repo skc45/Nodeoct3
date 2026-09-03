@@ -1,8 +1,214 @@
 const STORAGE_KEY = "three-axis-notes-settings";
+const BURGER_CENTER = { x: 1, z: 1 };
+const BURGER_SEGMENTS = 28;
+const BURGER_LAYERS = [
+  { name: "plate", y0: -0.04, y1: 0.02, radius: 1.12, color: "#9aa7b5", fill: "-", plate: true },
+  { name: "bottom bun", y0: 0.02, y1: 0.38, radius: 0.94, color: "#d9a441", fill: "O" },
+  { name: "patty", y0: 0.38, y1: 0.64, radius: 0.82, color: "#6b3319", fill: "#" },
+  { name: "cheese", y0: 0.64, y1: 0.8, radius: 0.93, color: "#ffcc33", fill: "=" },
+  { name: "lettuce", y0: 0.8, y1: 1.04, radius: 0.9, color: "#7dff6b", fill: "~", wavy: true },
+  { name: "tomato", y0: 1.04, y1: 1.28, radius: 0.78, color: "#e63946", fill: "o" },
+  { name: "top bun", y0: 1.28, y1: 2.0, radius: 0.94, color: "#e8b86d", fill: "@", dome: true, sesame: true },
+];
+
+const SESAME_SEEDS = [
+  [0.18, 0.08],
+  [-0.16, 0.14],
+  [0.04, -0.2],
+  [-0.22, -0.08],
+  [0.26, -0.12],
+  [-0.06, 0.24],
+  [0.12, 0.22],
+  [-0.28, 0.04],
+];
+
+const SHAPE_INFO = {
+  burger: {
+    id: "burger",
+    label: "Burger",
+    noun: "burger",
+    title: "Plot ideas on a 0-2 burger",
+    eyebrow: "3 Axis Notes // ASCII Burger",
+    intro: "Add notes with scores from 0 to 2. Each point lands in the bun-to-bun stack, inside one of eight labeled low/high octants.",
+    space: "0-2 burger space",
+  },
+  donut: {
+    id: "donut",
+    label: "Donut",
+    noun: "donut",
+    title: "Plot ideas on a 0-2 donut",
+    eyebrow: "3 Axis Notes // ASCII Donut",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the glazed torus, inside one of eight labeled low/high octants.",
+    space: "0-2 donut space",
+  },
+  leaf: {
+    id: "leaf",
+    label: "Flag",
+    noun: "flag",
+    title: "Plot ideas on a 0-2 Canadian flag",
+    eyebrow: "3 Axis Notes // ASCII Flag",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the Canadian flag, inside one of eight labeled low/high octants.",
+    space: "0-2 flag space",
+  },
+  house: {
+    id: "house",
+    label: "House",
+    noun: "house",
+    title: "Plot ideas on a 0-2 house",
+    eyebrow: "3 Axis Notes // ASCII House",
+    intro: "Add notes with scores from 0 to 2. Each point lands in the lit mansion, inside one of eight labeled low/high octants.",
+    space: "0-2 house space",
+  },
+  cart: {
+    id: "cart",
+    label: "Cart",
+    noun: "cart",
+    title: "Plot ideas on a 0-2 shopping cart",
+    eyebrow: "3 Axis Notes // ASCII Cart",
+    intro: "Add notes with scores from 0 to 2. Each point lands in the red grocery cart, inside one of eight labeled low/high octants.",
+    space: "0-2 cart space",
+  },
+  drone: {
+    id: "drone",
+    label: "Drone",
+    noun: "drone",
+    title: "Plot ideas on a 0-2 drone",
+    eyebrow: "3 Axis Notes // ASCII Drone",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the tiny whoop, inside one of eight labeled low/high octants.",
+    space: "0-2 drone space",
+  },
+  truck: {
+    id: "truck",
+    label: "Truck",
+    noun: "truck",
+    title: "Plot ideas on a 0-2 truck",
+    eyebrow: "3 Axis Notes // ASCII Truck",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the silver Toyota flatbed, inside one of eight labeled low/high octants.",
+    space: "0-2 truck space",
+  },
+  roo: {
+    id: "roo",
+    label: "Roo",
+    noun: "kangaroo",
+    title: "Plot ideas on a 0-2 kangaroo",
+    eyebrow: "3 Axis Notes // ASCII Roo",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the onsen kangaroo, inside one of eight labeled low/high octants.",
+    space: "0-2 kangaroo space",
+  },
+  wolf: {
+    id: "wolf",
+    label: "Wolf",
+    noun: "wolf",
+    title: "Plot ideas on a 0-2 wolf",
+    eyebrow: "3 Axis Notes // ASCII Wolf",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the wolf figure, inside one of eight labeled low/high octants.",
+    space: "0-2 wolf space",
+  },
+  flat: {
+    id: "flat",
+    label: "Flat",
+    noun: "flat",
+    title: "Plot ideas on a 0-2 flat",
+    eyebrow: "3 Axis Notes // ASCII Flat",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the night-scene figure, inside one of eight labeled low/high octants.",
+    space: "0-2 flat space",
+  },
+  absol: {
+    id: "absol",
+    label: "Absol",
+    noun: "absol",
+    title: "Plot ideas on a 0-2 absol",
+    eyebrow: "3 Axis Notes // ASCII Absol",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the moonlit absol, inside one of eight labeled low/high octants.",
+    space: "0-2 absol space",
+  },
+  gold: {
+    id: "gold",
+    label: "Gold",
+    noun: "gold",
+    title: "Plot ideas on a 0-2 gold figure",
+    eyebrow: "3 Axis Notes // ASCII Gold",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the gold-streaked figure, inside one of eight labeled low/high octants.",
+    space: "0-2 gold space",
+  },
+  cheetah: {
+    id: "cheetah",
+    label: "Cheetah",
+    noun: "cheetah",
+    title: "Plot ideas on a 0-2 cheetah",
+    eyebrow: "3 Axis Notes // ASCII Cheetah",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the Buc-ee's cheetah, inside one of eight labeled low/high octants.",
+    space: "0-2 cheetah space",
+  },
+  lucoa: {
+    id: "lucoa",
+    label: "Lucoa",
+    noun: "lucoa",
+    title: "Plot ideas on a 0-2 lucoa",
+    eyebrow: "3 Axis Notes // ASCII Lucoa",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the horned figure, inside one of eight labeled low/high octants.",
+    space: "0-2 lucoa space",
+  },
+  crystal: {
+    id: "crystal",
+    label: "Crystal",
+    noun: "crystal",
+    title: "Plot ideas on a 0-2 crystal figure",
+    eyebrow: "3 Axis Notes // ASCII Crystal",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the crystal-pedestal figure, inside one of eight labeled low/high octants.",
+    space: "0-2 crystal space",
+  },
+  mega: {
+    id: "mega",
+    label: "Mega",
+    noun: "mega",
+    title: "Plot ideas on a 0-2 mega figure",
+    eyebrow: "3 Axis Notes // ASCII Mega",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the giant teal figure, inside one of eight labeled low/high octants.",
+    space: "0-2 mega space",
+  },
+  fennec: {
+    id: "fennec",
+    label: "Fennec",
+    noun: "fennec",
+    title: "Plot ideas on a 0-2 fennec",
+    eyebrow: "3 Axis Notes // ASCII Fennec",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the beach fennec, inside one of eight labeled low/high octants.",
+    space: "0-2 fennec space",
+  },
+  moth: {
+    id: "moth",
+    label: "Moth",
+    noun: "moth",
+    title: "Plot ideas on a 0-2 moth pair",
+    eyebrow: "3 Axis Notes // ASCII Moth",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the moth pair, inside one of eight labeled low/high octants.",
+    space: "0-2 moth space",
+  },
+  loaf: {
+    id: "loaf",
+    label: "Loaf",
+    noun: "loaf",
+    title: "Plot ideas on a 0-2 loaf",
+    eyebrow: "3 Axis Notes // ASCII Loaf",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the baguette loaf, inside one of eight labeled low/high octants.",
+    space: "0-2 loaf space",
+  },
+  storm: {
+    id: "storm",
+    label: "Storm",
+    noun: "storm",
+    title: "Plot ideas on a 0-2 storm deity",
+    eyebrow: "3 Axis Notes // ASCII Storm",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the storm deity, inside one of eight labeled low/high octants.",
+    space: "0-2 storm space",
+  },
+};
 
 const defaultSettings = {
   axes: ["Urgency", "Impact", "Effort"],
   regions: {},
+  shape: "burger",
 };
 
 const regionCombos = [
@@ -43,11 +249,22 @@ let settings = loadSettings();
 let notes = [];
 let activeNoteId = null;
 let nextNoteId = 1;
-let yaw = -0.72;
-let pitch = 0.56;
+let yaw = -0.9;
+let pitch = 0.38;
 let zoom = 1;
 let dragState = null;
 let hitTargets = [];
+let cellW = 8;
+let cellH = 14;
+let gridCols = 80;
+let gridRows = 40;
+let lastBuf = null;
+let rotateLocked = false;
+let stickyLock = false;
+let hoverLocked = false;
+let yawVel = 0;
+let pitchVel = 0;
+let spinFrame = 0;
 
 const canvas = document.querySelector("#cubeCanvas");
 const ctx = canvas.getContext("2d");
@@ -62,6 +279,14 @@ const openSettings = document.querySelector("#openSettings");
 const closeSettings = document.querySelector("#closeSettings");
 const resetLabels = document.querySelector("#resetLabels");
 const resetView = document.querySelector("#resetView");
+const lockRotate = document.querySelector("#lockRotate");
+const cubePanel = document.querySelector(".cube-panel");
+const canvasHint = document.querySelector("#canvasHint");
+const shapePicker = document.querySelector("#shapePicker");
+const shapeEyebrow = document.querySelector("#shapeEyebrow");
+const shapeIntro = document.querySelector("#shapeIntro");
+const shapeSpace = document.querySelector("#shapeSpace");
+const notePanelTitle = document.querySelector("#notePanelTitle");
 
 function loadSettings() {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -74,14 +299,55 @@ function loadSettings() {
     return {
       axes: parsed.axes?.length === 3 ? parsed.axes : [...defaultSettings.axes],
       regions: { ...defaultSettings.regions, ...(parsed.regions || {}) },
+      shape: SHAPE_INFO[parsed.shape] ? parsed.shape : "burger",
     };
   } catch {
     return structuredClone(defaultSettings);
   }
 }
 
+function currentShape() {
+  return SHAPE_INFO[settings.shape] ? settings.shape : "burger";
+}
+
+function shapeNoun() {
+  return SHAPE_INFO[currentShape()].noun;
+}
+
 function saveSettings() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+}
+
+function applyShapeCopy() {
+  const info = SHAPE_INFO[currentShape()];
+  document.title = info.eyebrow;
+  shapeEyebrow.textContent = info.eyebrow;
+  notePanelTitle.textContent = info.title;
+  shapeIntro.textContent = info.intro;
+  shapeSpace.textContent = info.space;
+  cubePanel.setAttribute("aria-label", `ASCII ${info.noun} visualization`);
+  canvasHint.textContent = rotateLocked
+    ? "Locked. Swipe to rotate. Tap empty space to unlock. Click @ or o to select."
+    : `Hover or tap the ${info.noun} to lock, then swipe to rotate.`;
+}
+
+function renderShapePicker() {
+  shapePicker.innerHTML = "";
+  Object.values(SHAPE_INFO).forEach((info) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.shape = info.id;
+    button.className = info.id === currentShape() ? "is-active" : "";
+    button.textContent = `[ ${info.label.toUpperCase()} ]`;
+    button.addEventListener("click", () => {
+      settings.shape = info.id;
+      saveSettings();
+      applyShapeCopy();
+      renderShapePicker();
+      drawScene();
+    });
+    shapePicker.appendChild(button);
+  });
 }
 
 function getRegionParts(point) {
@@ -148,7 +414,7 @@ function renderSettingsForm() {
     row.innerHTML = `
       <p data-region-description="${key}">${regionDescriptor(combo)}</p>
       <label>
-        Sub-cube label
+        Octant label
         <input type="text" name="${key}" value="${settings.regions[key]}" data-region-key="${key}" />
       </label>
     `;
@@ -257,6 +523,11 @@ function setupCanvasSize() {
   canvas.width = Math.max(1, Math.floor(rect.width * dpr));
   canvas.height = Math.max(1, Math.floor(rect.height * dpr));
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  cellH = Math.max(10, Math.min(16, Math.floor(rect.height / 46)));
+  cellW = Math.max(6, Math.floor(cellH * 0.62));
+  gridCols = Math.max(24, Math.floor(rect.width / cellW));
+  gridRows = Math.max(16, Math.floor(rect.height / cellH));
   drawScene();
 }
 
@@ -295,269 +566,2210 @@ function project(point) {
   };
 }
 
-function projectFlat(point) {
-  const rect = canvas.getBoundingClientRect();
-  const rotated = rotate(point);
-  const scale = Math.min(rect.width, rect.height) * 0.34 * zoom;
-
+function toCell(point) {
+  const projected = project(point);
   return {
-    x: rect.width / 2 + rotated.x * scale,
-    y: rect.height / 2 - rotated.y * scale,
+    x: projected.x / cellW,
+    y: projected.y / cellH,
+    z: projected.z,
+    perspective: projected.perspective,
   };
+}
+
+function createBuffer() {
+  return {
+    chars: Array.from({ length: gridRows }, () => Array(gridCols).fill(" ")),
+    depths: Array.from({ length: gridRows }, () => Array(gridCols).fill(-Infinity)),
+    colors: Array.from({ length: gridRows }, () => Array(gridCols).fill("#8b9aab")),
+    cols: gridCols,
+    rows: gridRows,
+  };
+}
+
+function plotCell(buf, col, row, ch, depth, color) {
+  if (col < 0 || row < 0 || col >= buf.cols || row >= buf.rows) return;
+  if (depth >= buf.depths[row][col]) {
+    buf.depths[row][col] = depth;
+    buf.chars[row][col] = ch;
+    buf.colors[row][col] = color;
+  }
+}
+
+function shadeChar(z) {
+  const t = (z + 1.6) / 3.2;
+  const index = Math.max(0, Math.min(ASCII_RAMP.length - 1, Math.floor(t * ASCII_RAMP.length)));
+  return ASCII_RAMP[index];
+}
+
+function lineChar(dx, dy) {
+  const ax = Math.abs(dx);
+  const ay = Math.abs(dy);
+  if (ay < ax * 0.35) return "-";
+  if (ax < ay * 0.35) return "|";
+  return Math.sign(dx) === Math.sign(dy) ? "\\" : "/";
+}
+
+function edge(a, b, c) {
+  return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
+}
+
+function fillTriangle(buf, a, b, c, color, ch) {
+  const minX = Math.max(0, Math.floor(Math.min(a.x, b.x, c.x)));
+  const maxX = Math.min(buf.cols - 1, Math.ceil(Math.max(a.x, b.x, c.x)));
+  const minY = Math.max(0, Math.floor(Math.min(a.y, b.y, c.y)));
+  const maxY = Math.min(buf.rows - 1, Math.ceil(Math.max(a.y, b.y, c.y)));
+  const area = edge(a, b, c);
+  if (Math.abs(area) < 0.0001) return;
+
+  for (let row = minY; row <= maxY; row += 1) {
+    for (let col = minX; col <= maxX; col += 1) {
+      const point = { x: col + 0.5, y: row + 0.5 };
+      const w0 = edge(b, c, point) / area;
+      const w1 = edge(c, a, point) / area;
+      const w2 = edge(a, b, point) / area;
+      if (!((w0 >= 0 && w1 >= 0 && w2 >= 0) || (w0 <= 0 && w1 <= 0 && w2 <= 0))) continue;
+      const z = w0 * a.z + w1 * b.z + w2 * c.z;
+      plotCell(buf, col, row, ch || shadeChar(z), z, color);
+    }
+  }
+}
+
+function fillQuad(buf, points, color, ch) {
+  const cells = points.map(toCell);
+  fillTriangle(buf, cells[0], cells[1], cells[2], color, ch);
+  fillTriangle(buf, cells[0], cells[2], cells[3], color, ch);
+}
+
+function drawAsciiLine(buf, start, end, color, depthBias = 0.04) {
+  const a = toCell(start);
+  const b = toCell(end);
+  let x0 = Math.round(a.x);
+  let y0 = Math.round(a.y);
+  const x1 = Math.round(b.x);
+  const y1 = Math.round(b.y);
+  const dx = Math.abs(x1 - x0);
+  const dy = Math.abs(y1 - y0);
+  const sx = x0 < x1 ? 1 : -1;
+  const sy = y0 < y1 ? 1 : -1;
+  let err = dx - dy;
+  const steps = Math.max(dx, dy, 1);
+  const glyph = lineChar(x1 - x0, y1 - y0);
+  let i = 0;
+
+  while (true) {
+    const t = i / steps;
+    const z = a.z + (b.z - a.z) * t + depthBias;
+    const isEnd = (x0 === x1 && y0 === y1) || i === 0;
+    plotCell(buf, x0, y0, isEnd ? "+" : glyph, z, color);
+    if (x0 === x1 && y0 === y1) break;
+    const twiceErr = 2 * err;
+    if (twiceErr > -dy) {
+      err -= dy;
+      x0 += sx;
+    }
+    if (twiceErr < dx) {
+      err += dx;
+      y0 += sy;
+    }
+    i += 1;
+  }
+}
+
+function writeText(buf, text, x, y, color, depth = 8) {
+  const clipped = text.length > 22 ? `${text.slice(0, 21)}.` : text;
+  const start = Math.round(x - clipped.length / 2);
+  const row = Math.round(y);
+  for (let i = 0; i < clipped.length; i += 1) {
+    plotCell(buf, start + i, row, clipped[i], depth, color);
+  }
+}
+
+function blit(buf, rect) {
+  ctx.fillStyle = "#05070a";
+  ctx.fillRect(0, 0, rect.width, rect.height);
+  ctx.font = `${Math.floor(cellH * 0.92)}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+
+  for (let row = 0; row < buf.rows; row += 1) {
+    for (let col = 0; col < buf.cols; col += 1) {
+      const ch = buf.chars[row][col];
+      if (ch === " ") continue;
+      ctx.fillStyle = buf.colors[row][col];
+      ctx.fillText(ch, col * cellW, row * cellH);
+    }
+  }
 }
 
 function drawScene() {
   const rect = canvas.getBoundingClientRect();
-  ctx.clearRect(0, 0, rect.width, rect.height);
   hitTargets = [];
+  const buf = createBuffer();
 
-  drawBackground(rect);
-  drawSubCubes();
-  drawMidPlanes();
-  drawOuterWireframe();
-  drawTicksAndAxes();
-  drawRegionLabels();
-  drawNotes();
+  drawShape(buf);
+  drawTicksAndAxes(buf);
+  drawShapeLabels(buf);
+  drawNotes(buf);
+  lastBuf = buf;
+  blit(buf, rect);
 }
 
-function drawBackground(rect) {
-  const gradient = ctx.createRadialGradient(rect.width * 0.5, rect.height * 0.45, 20, rect.width * 0.5, rect.height * 0.5, rect.width * 0.65);
-  gradient.addColorStop(0, "rgba(14, 165, 233, 0.16)");
-  gradient.addColorStop(1, "rgba(2, 6, 23, 0)");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, rect.width, rect.height);
+function drawShape(buf) {
+  const drawers = {
+    burger: drawBurger,
+    donut: drawDonut,
+    leaf: drawLeaf,
+    house: drawHouse,
+    cart: drawCart,
+    drone: drawDrone,
+    truck: drawTruck,
+    roo: drawRoo,
+    wolf: drawWolf,
+    flat: drawFlat,
+    absol: drawAbsol,
+    gold: drawGold,
+    cheetah: drawCheetah,
+    lucoa: drawLucoa,
+    crystal: drawCrystal,
+    mega: drawMega,
+    fennec: drawFennec,
+    moth: drawMoth,
+    loaf: drawLoaf,
+    storm: drawStorm,
+  };
+  drawers[currentShape()](buf);
 }
 
-function drawSubCubes() {
-  const faces = [];
+function drawShapeLabels(buf) {
+  const labels = {
+    burger: drawBurgerLabels,
+    donut: drawDonutLabels,
+    leaf: drawLeafLabels,
+    house: drawHouseLabels,
+    cart: drawCartLabels,
+    drone: drawDroneLabels,
+    truck: drawTruckLabels,
+    roo: drawRooLabels,
+    wolf: drawWolfLabels,
+    flat: drawFlatLabels,
+    absol: drawAbsolLabels,
+    gold: drawGoldLabels,
+    cheetah: drawCheetahLabels,
+    lucoa: drawLucoaLabels,
+    crystal: drawCrystalLabels,
+    mega: drawMegaLabels,
+    fennec: drawFennecLabels,
+    moth: drawMothLabels,
+    loaf: drawLoafLabels,
+    storm: drawStormLabels,
+  };
+  labels[currentShape()](buf);
+}
 
-  regionCombos.forEach((combo, regionIndex) => {
-    const xRange = combo[0] === "low" ? [0, 1] : [1, 2];
-    const yRange = combo[1] === "low" ? [0, 1] : [1, 2];
-    const zRange = combo[2] === "low" ? [0, 1] : [1, 2];
-    const color = hexToRgb(regionColors[regionIndex]);
-    const points = cuboidPoints(xRange, yRange, zRange);
+function ringPoint(angle, radius, y, cx = 1, cz = 1) {
+  return {
+    x: cx + Math.cos(angle) * radius,
+    y,
+    z: cz + Math.sin(angle) * radius,
+  };
+}
 
-    for (const face of cuboidFaces(points)) {
-      faces.push({
-        points: face,
-        depth: averageDepth(face),
-        fill: `rgba(${color.r}, ${color.g}, ${color.b}, 0.075)`,
-        stroke: `rgba(${color.r}, ${color.g}, ${color.b}, 0.24)`,
-      });
+function burgerPoint(angle, radius, y) {
+  return ringPoint(angle, radius, y, BURGER_CENTER.x, BURGER_CENTER.z);
+}
+
+function layerRadius(layer, angle) {
+  if (!layer.wavy) return layer.radius;
+  return layer.radius + 0.07 * Math.sin(angle * 6);
+}
+
+function fillDisc(buf, y, radius, color, fill) {
+  fillDiscAt(buf, BURGER_CENTER.x, y, BURGER_CENTER.z, radius, color, fill, BURGER_SEGMENTS);
+}
+
+function fillDiscAt(buf, cx, y, cz, radius, color, fill, segments = 18) {
+  const center = { x: cx, y, z: cz };
+  for (let i = 0; i < segments; i += 1) {
+    const a0 = (i / segments) * Math.PI * 2;
+    const a1 = ((i + 1) / segments) * Math.PI * 2;
+    fillQuad(buf, [center, ringPoint(a0, radius, y, cx, cz), ringPoint(a1, radius, y, cx, cz), center], color, fill);
+  }
+}
+
+function stackDiscs(buf, cx, y0, y1, cz, r0, r1, color, fill, layers = 12, segments = 16) {
+  for (let i = 0; i < layers; i += 1) {
+    const t = i / Math.max(1, layers - 1);
+    fillDiscAt(buf, cx, y0 + (y1 - y0) * t, cz, r0 + (r1 - r0) * t, color, fill, segments);
+  }
+}
+
+function ellipsoidPoint(u, v, cx, cy, cz, rx, ry, rz, bulge = 0) {
+  const sinV = Math.sin(v);
+  const cosV = Math.cos(v);
+  const inflate = 1 + bulge * Math.max(0, sinV);
+  return {
+    x: cx + rx * inflate * sinV * Math.cos(u),
+    y: cy + ry * cosV,
+    z: cz + rz * inflate * sinV * Math.sin(u),
+    nx: sinV * Math.cos(u),
+    ny: cosV,
+    nz: sinV * Math.sin(u),
+  };
+}
+
+function fillEllipsoid(buf, cx, cy, cz, rx, ry, rz, color, fill = "O", opts = {}) {
+  const uSeg = opts.uSeg || 24;
+  const vSeg = opts.vSeg || 18;
+  const bulge = opts.bulge || 0;
+  const hi = opts.highlight || "#fff6e8";
+  const gloss = opts.gloss ?? 0.48;
+  const hot = opts.hot ?? 0.74;
+  const light = opts.light || { x: 0.28, y: 0.72, z: 0.64 };
+  const len = Math.hypot(light.x, light.y, light.z) || 1;
+  const lx = light.x / len;
+  const ly = light.y / len;
+  const lz = light.z / len;
+  for (let i = 0; i < uSeg; i += 1) {
+    for (let j = 0; j < vSeg; j += 1) {
+      const u0 = (i / uSeg) * Math.PI * 2;
+      const u1 = ((i + 1) / uSeg) * Math.PI * 2;
+      const v0 = (j / vSeg) * Math.PI;
+      const v1 = ((j + 1) / vSeg) * Math.PI;
+      const p00 = ellipsoidPoint(u0, v0, cx, cy, cz, rx, ry, rz, bulge);
+      const p10 = ellipsoidPoint(u1, v0, cx, cy, cz, rx, ry, rz, bulge);
+      const p11 = ellipsoidPoint(u1, v1, cx, cy, cz, rx, ry, rz, bulge);
+      const p01 = ellipsoidPoint(u0, v1, cx, cy, cz, rx, ry, rz, bulge);
+      const nx = (p00.nx + p10.nx + p11.nx + p01.nx) / 4;
+      const ny = (p00.ny + p10.ny + p11.ny + p01.ny) / 4;
+      const nz = (p00.nz + p10.nz + p11.nz + p01.nz) / 4;
+      const shine = nx * lx + ny * ly + nz * lz;
+      const glyph = shine > hot ? "*" : shine > gloss ? "o" : fill;
+      fillQuad(buf, [p00, p10, p11, p01], shine > gloss ? hi : color, glyph);
     }
-  });
+  }
+}
 
-  faces.sort((a, b) => a.depth - b.depth);
+function lerp3(a, b, t) {
+  return {
+    x: a.x + (b.x - a.x) * t,
+    y: a.y + (b.y - a.y) * t,
+    z: a.z + (b.z - a.z) * t,
+  };
+}
+
+function quadPoint(p00, p10, p01, p11, u, v) {
+  return lerp3(lerp3(p00, p10, u), lerp3(p01, p11, u), v);
+}
+
+function cartOvalHole(u, v, cols, rows) {
+  const mu = 0.07;
+  const mv = 0.1;
+  if (u < mu || u > 1 - mu || v < mv || v > 1 - mv) return false;
+  const uu = (u - mu) / (1 - 2 * mu);
+  const vv = (v - mv) / (1 - 2 * mv);
+  const col = Math.min(cols - 1, Math.floor(uu * cols));
+  const row = Math.min(rows - 1, Math.floor(vv * rows));
+  const dx = (uu - (col + 0.5) / cols) * cols;
+  const dy = (vv - (row + 0.5) / rows) * rows;
+  return (dx * dx) / (0.27 * 0.27) + (dy * dy) / (0.4 * 0.4) < 1;
+}
+
+function fillTriangleUV(buf, a, b, c, ua, va, ub, vb, uc, vc, color, ch, holeTest) {
+  const minX = Math.max(0, Math.floor(Math.min(a.x, b.x, c.x)));
+  const maxX = Math.min(buf.cols - 1, Math.ceil(Math.max(a.x, b.x, c.x)));
+  const minY = Math.max(0, Math.floor(Math.min(a.y, b.y, c.y)));
+  const maxY = Math.min(buf.rows - 1, Math.ceil(Math.max(a.y, b.y, c.y)));
+  const area = edge(a, b, c);
+  if (Math.abs(area) < 0.0001) return;
+
+  for (let row = minY; row <= maxY; row += 1) {
+    for (let col = minX; col <= maxX; col += 1) {
+      const point = { x: col + 0.5, y: row + 0.5 };
+      const w0 = edge(b, c, point) / area;
+      const w1 = edge(c, a, point) / area;
+      const w2 = edge(a, b, point) / area;
+      if (!((w0 >= 0 && w1 >= 0 && w2 >= 0) || (w0 <= 0 && w1 <= 0 && w2 <= 0))) continue;
+      const u = w0 * ua + w1 * ub + w2 * uc;
+      const v = w0 * va + w1 * vb + w2 * vc;
+      if (holeTest?.(u, v)) continue;
+      const z = w0 * a.z + w1 * b.z + w2 * c.z;
+      plotCell(buf, col, row, ch || shadeChar(z), z, color);
+    }
+  }
+}
+
+function drawPerforatedQuad(buf, p00, p10, p11, p01, color, fill, cols, rows, holeTest) {
+  const c00 = toCell(p00);
+  const c10 = toCell(p10);
+  const c11 = toCell(p11);
+  const c01 = toCell(p01);
+  const test = holeTest || ((u, v) => cartOvalHole(u, v, cols, rows));
+  fillTriangleUV(buf, c00, c10, c11, 0, 0, 1, 0, 1, 1, color, fill, test);
+  fillTriangleUV(buf, c00, c11, c01, 0, 0, 1, 1, 0, 1, color, fill, test);
+}
+
+function drawTube(buf, start, end, color) {
+  const offsets = [
+    { x: 0, y: 0, z: 0 },
+    { x: 0.045, y: 0.02, z: 0.02 },
+    { x: -0.03, y: 0.035, z: -0.02 },
+    { x: 0.02, y: -0.03, z: 0.03 },
+  ];
+  for (const o of offsets) {
+    drawAsciiLine(
+      buf,
+      { x: start.x + o.x, y: start.y + o.y, z: start.z + o.z },
+      { x: end.x + o.x, y: end.y + o.y, z: end.z + o.z },
+      color,
+      0.1,
+    );
+  }
+}
+
+function drawWheelYZ(buf, x, cy, cz, radius, thickness = 0.08, caster = false) {
+  const tire = "#3a3a3a";
+  const hub = "#9aa3ad";
+  const fork = "#c5cdd4";
+  const segments = 16;
+  for (const ox of [-thickness / 2, thickness / 2]) {
+    const wx = x + ox;
+    const center = { x: wx, y: cy, z: cz };
+    for (let i = 0; i < segments; i += 1) {
+      const a0 = (i / segments) * Math.PI * 2;
+      const a1 = ((i + 1) / segments) * Math.PI * 2;
+      const outer0 = { x: wx, y: cy + Math.cos(a0) * radius, z: cz + Math.sin(a0) * radius };
+      const outer1 = { x: wx, y: cy + Math.cos(a1) * radius, z: cz + Math.sin(a1) * radius };
+      const inner0 = { x: wx, y: cy + Math.cos(a0) * radius * 0.42, z: cz + Math.sin(a0) * radius * 0.42 };
+      const inner1 = { x: wx, y: cy + Math.cos(a1) * radius * 0.42, z: cz + Math.sin(a1) * radius * 0.42 };
+      fillQuad(buf, [outer0, outer1, inner1, inner0], tire, "o");
+      fillQuad(buf, [center, inner0, inner1, center], hub, "*");
+    }
+  }
+  if (caster) {
+    const top = { x, y: cy + radius + 0.18, z: cz };
+    drawTube(buf, { x, y: cy + radius * 0.2, z: cz - radius * 0.55 }, top, fork);
+    drawTube(buf, { x, y: cy + radius * 0.2, z: cz + radius * 0.55 }, top, fork);
+    drawTube(buf, top, { x, y: top.y + 0.08, z: cz }, fork);
+  }
+}
+
+function drawWheelXY(buf, cx, cy, z, radius, thickness = 0.1) {
+  const tire = "#1a1a1a";
+  const rim = "#2e2e32";
+  const segments = 16;
+  for (const oz of [-thickness / 2, thickness / 2]) {
+    const wz = z + oz;
+    const center = { x: cx, y: cy, z: wz };
+    for (let i = 0; i < segments; i += 1) {
+      const a0 = (i / segments) * Math.PI * 2;
+      const a1 = ((i + 1) / segments) * Math.PI * 2;
+      const outer0 = { x: cx + Math.cos(a0) * radius, y: cy + Math.sin(a0) * radius, z: wz };
+      const outer1 = { x: cx + Math.cos(a1) * radius, y: cy + Math.sin(a1) * radius, z: wz };
+      const inner0 = { x: cx + Math.cos(a0) * radius * 0.42, y: cy + Math.sin(a0) * radius * 0.42, z: wz };
+      const inner1 = { x: cx + Math.cos(a1) * radius * 0.42, y: cy + Math.sin(a1) * radius * 0.42, z: wz };
+      fillQuad(buf, [outer0, outer1, inner1, inner0], tire, "o");
+      fillQuad(buf, [center, inner0, inner1, center], rim, "*");
+    }
+  }
+}
+
+function writeOnMesh(buf, text, point, color) {
+  const cell = toCell(point);
+  const start = Math.round(cell.x - text.length / 2);
+  const row = Math.round(cell.y);
+  for (let i = 0; i < text.length; i += 1) {
+    plotCell(buf, start + i, row, text[i], cell.z + 0.16, color);
+  }
+}
+
+function drawLitWindow(buf, x0, x1, y0, y1, z0, z1, arched = false) {
+  const glow = "#ffd056";
+  const pane = "#ffe38a";
+  drawBox(buf, x0, x1, y0, y1, z0, z1, glow, "o");
+  if (arched) {
+    const mid = (x0 + x1) / 2;
+    const z = (z0 + z1) / 2;
+    fillQuad(
+      buf,
+      [
+        { x: x0, y: y1, z },
+        { x: x1, y: y1, z },
+        { x: mid, y: y1 + (y1 - y0) * 0.35, z },
+        { x: x0, y: y1, z },
+      ],
+      pane,
+      "o",
+    );
+  }
+}
+
+function drawBurger(buf) {
+  for (const layer of BURGER_LAYERS) {
+    const rings = layer.dome ? 4 : 1;
+    for (let ring = 0; ring < rings; ring += 1) {
+      const t0 = ring / rings;
+      const t1 = (ring + 1) / rings;
+      const y0 = layer.y0 + (layer.y1 - layer.y0) * t0;
+      const y1 = layer.y0 + (layer.y1 - layer.y0) * t1;
+      const r0 = layer.dome ? layer.radius * Math.cos(t0 * Math.PI * 0.48) : layer.radius;
+      const r1 = layer.dome ? layer.radius * Math.cos(t1 * Math.PI * 0.48) : layer.radius;
+
+      for (let i = 0; i < BURGER_SEGMENTS; i += 1) {
+        const a0 = (i / BURGER_SEGMENTS) * Math.PI * 2;
+        const a1 = ((i + 1) / BURGER_SEGMENTS) * Math.PI * 2;
+        const p00 = burgerPoint(a0, layer.wavy ? layerRadius(layer, a0) : r0, y0);
+        const p10 = burgerPoint(a1, layer.wavy ? layerRadius(layer, a1) : r0, y0);
+        const p01 = burgerPoint(a0, layer.wavy ? layerRadius(layer, a0) : r1, y1);
+        const p11 = burgerPoint(a1, layer.wavy ? layerRadius(layer, a1) : r1, y1);
+        fillQuad(buf, [p00, p10, p11, p01], layer.color, layer.fill);
+        drawAsciiLine(buf, p00, p10, layer.color, 0.05);
+        drawAsciiLine(buf, p01, p11, layer.color, 0.05);
+      }
+    }
+
+    fillDisc(buf, layer.y0, layer.radius, layer.color, layer.fill);
+    fillDisc(buf, layer.y1, layer.dome ? layer.radius * 0.28 : layer.radius, layer.color, layer.fill);
+
+    if (layer.sesame) {
+      for (const [dx, dz] of SESAME_SEEDS) {
+        const seed = { x: BURGER_CENTER.x + dx, y: layer.y1 - 0.06, z: BURGER_CENTER.z + dz };
+        const cell = toCell(seed);
+        plotCell(buf, Math.round(cell.x), Math.round(cell.y), "*", cell.z + 0.12, "#fff4c8");
+      }
+    }
+  }
+}
+
+function drawBurgerLabels(buf) {
+  for (const layer of BURGER_LAYERS) {
+    if (layer.plate) continue;
+    const point = {
+      x: BURGER_CENTER.x + layer.radius + 0.22,
+      y: (layer.y0 + layer.y1) / 2,
+      z: BURGER_CENTER.z,
+    };
+    const cell = toCell(point);
+    writeText(buf, `[${layer.name}]`, cell.x, cell.y, layer.color, 7);
+  }
+}
+
+function torusPoint(u, v, R = 0.72, r = 0.3) {
+  return {
+    x: 1 + (R + r * Math.cos(v)) * Math.cos(u),
+    y: 1 + r * Math.sin(v),
+    z: 1 + (R + r * Math.cos(v)) * Math.sin(u),
+  };
+}
+
+function drawDonut(buf) {
+  const uSeg = 32;
+  const vSeg = 18;
+  for (let i = 0; i < uSeg; i += 1) {
+    for (let j = 0; j < vSeg; j += 1) {
+      const u0 = (i / uSeg) * Math.PI * 2;
+      const u1 = ((i + 1) / uSeg) * Math.PI * 2;
+      const v0 = (j / vSeg) * Math.PI * 2;
+      const v1 = ((j + 1) / vSeg) * Math.PI * 2;
+      const glazed = Math.sin((v0 + v1) / 2) > 0.12;
+      const color = glazed ? "#f4a6c1" : "#d4a574";
+      const fill = glazed ? "@" : "O";
+      fillQuad(buf, [torusPoint(u0, v0), torusPoint(u1, v0), torusPoint(u1, v1), torusPoint(u0, v1)], color, fill);
+    }
+  }
+
+  const sprinkles = [
+    [0.2, 0.9, "#ff6b6b"],
+    [1.1, 0.7, "#7dd3fc"],
+    [2.4, 1.2, "#ffe66d"],
+    [3.6, 0.5, "#ffffff"],
+    [4.8, 1.0, "#ff8fab"],
+    [5.5, 0.8, "#bde0fe"],
+  ];
+  for (const [u, v, color] of sprinkles) {
+    const seed = torusPoint(u, v, 0.72, 0.34);
+    const cell = toCell(seed);
+    plotCell(buf, Math.round(cell.x), Math.round(cell.y), "*", cell.z + 0.12, color);
+  }
+}
+
+function drawDonutLabels(buf) {
+  const tags = [
+    { text: "[glaze]", point: torusPoint(0.4, 1.2), color: "#f4a6c1" },
+    { text: "[dough]", point: torusPoint(3.4, 4.2), color: "#d4a574" },
+    { text: "[hole]", point: { x: 1, y: 1, z: 1 }, color: "#9aa7b5" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+const MAPLE_SVG = [
+  [512, 32],
+  [599, 249],
+  [837, 194],
+  [720, 394],
+  [944, 487],
+  [720, 580],
+  [837, 780],
+  [599, 725],
+  [512, 942],
+  [425, 725],
+  [187, 780],
+  [304, 580],
+  [80, 487],
+  [304, 394],
+  [187, 194],
+  [425, 249],
+];
+
+function mapleWorld(sx, sy, z = 1) {
+  const scale = 0.0007;
+  return {
+    x: 1 + (sx - 512) * scale,
+    y: 1.02 + (487 - sy) * scale,
+    z,
+  };
+}
+
+const MAPLE_POLY = MAPLE_SVG.map(([sx, sy]) => mapleWorld(sx, sy));
+
+function pointInMaple(x, y) {
+  let inside = false;
+  for (let i = 0, j = MAPLE_POLY.length - 1; i < MAPLE_POLY.length; j = i, i += 1) {
+    const a = MAPLE_POLY[i];
+    const b = MAPLE_POLY[j];
+    if ((a.y > y) !== (b.y > y) && x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function fillFlagRect(buf, x0, x1, y0, y1, z, color, fill, nx, ny) {
+  for (let i = 0; i < nx; i += 1) {
+    for (let j = 0; j < ny; j += 1) {
+      const xa = x0 + ((x1 - x0) * i) / nx;
+      const xb = x0 + ((x1 - x0) * (i + 1)) / nx;
+      const ya = y0 + ((y1 - y0) * j) / ny;
+      const yb = y0 + ((y1 - y0) * (j + 1)) / ny;
+      fillQuad(
+        buf,
+        [
+          { x: xa, y: ya, z },
+          { x: xb, y: ya, z },
+          { x: xb, y: yb, z },
+          { x: xa, y: yb, z },
+        ],
+        color,
+        fill,
+      );
+    }
+  }
+}
+
+function drawLeaf(buf) {
+  const red = "#ff0000";
+  const white = "#f4f4f4";
+  const x0 = 0.08;
+  const x1 = 1.92;
+  const y0 = 0.52;
+  const y1 = 1.48;
+  const z0 = 0.92;
+  const z1 = 1.08;
+  const pale = (x1 - x0) / 4;
+  const left = x0 + pale;
+  const right = x1 - pale;
+
+  drawBox(buf, x0, left, y0, y1, z0, z1, red, "#");
+  drawBox(buf, left, right, y0, y1, z0, z1, white, "=");
+  drawBox(buf, right, x1, y0, y1, z0, z1, red, "#");
+  fillFlagRect(buf, x0, left, y0, y1, z1 + 0.01, red, "#", 4, 10);
+  fillFlagRect(buf, left, right, y0, y1, z1 + 0.01, white, "=", 10, 10);
+  fillFlagRect(buf, right, x1, y0, y1, z1 + 0.01, red, "#", 4, 10);
+  fillFlagRect(buf, x0, left, y0, y1, z0 - 0.01, red, "#", 4, 10);
+  fillFlagRect(buf, left, right, y0, y1, z0 - 0.01, white, "=", 10, 10);
+  fillFlagRect(buf, right, x1, y0, y1, z0 - 0.01, red, "#", 4, 10);
+
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const p of MAPLE_POLY) {
+    minX = Math.min(minX, p.x);
+    maxX = Math.max(maxX, p.x);
+    minY = Math.min(minY, p.y);
+    maxY = Math.max(maxY, p.y);
+  }
+  const nx = 48;
+  const ny = 54;
+  for (let i = 0; i < nx; i += 1) {
+    for (let j = 0; j < ny; j += 1) {
+      const xa = minX + ((maxX - minX) * i) / nx;
+      const xb = minX + ((maxX - minX) * (i + 1)) / nx;
+      const ya = minY + ((maxY - minY) * j) / ny;
+      const yb = minY + ((maxY - minY) * (j + 1)) / ny;
+      if (!pointInMaple((xa + xb) / 2, (ya + yb) / 2)) continue;
+      fillQuad(
+        buf,
+        [
+          { x: xa, y: ya, z: z1 + 0.03 },
+          { x: xb, y: ya, z: z1 + 0.03 },
+          { x: xb, y: yb, z: z1 + 0.03 },
+          { x: xa, y: yb, z: z1 + 0.03 },
+        ],
+        red,
+        "#",
+      );
+    }
+  }
+  for (let i = 0; i < MAPLE_POLY.length; i += 1) {
+    const a = MAPLE_POLY[i];
+    const b = MAPLE_POLY[(i + 1) % MAPLE_POLY.length];
+    drawAsciiLine(buf, { ...a, z: z1 + 0.04 }, { ...b, z: z1 + 0.04 }, red, 0.12);
+  }
+}
+
+function drawLeafLabels(buf) {
+  const tags = [
+    { text: "[pale]", point: { x: 0.22, y: 1.05, z: 1.16 }, color: "#ff4d4d" },
+    { text: "[maple]", point: { x: 1, y: 1.22, z: 1.16 }, color: "#ff0000" },
+    { text: "[field]", point: { x: 1.05, y: 0.64, z: 1.16 }, color: "#f4f4f4" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function drawBox(buf, x0, x1, y0, y1, z0, z1, color, fill) {
+  const p = (x, y, z) => ({ x, y, z });
+  const faces = [
+    [p(x0, y0, z0), p(x1, y0, z0), p(x1, y1, z0), p(x0, y1, z0)],
+    [p(x0, y0, z1), p(x1, y0, z1), p(x1, y1, z1), p(x0, y1, z1)],
+    [p(x0, y0, z0), p(x0, y1, z0), p(x0, y1, z1), p(x0, y0, z1)],
+    [p(x1, y0, z0), p(x1, y1, z0), p(x1, y1, z1), p(x1, y0, z1)],
+    [p(x0, y0, z0), p(x1, y0, z0), p(x1, y0, z1), p(x0, y0, z1)],
+    [p(x0, y1, z0), p(x1, y1, z0), p(x1, y1, z1), p(x0, y1, z1)],
+  ];
   for (const face of faces) {
-    drawPolygon(face.points, face.fill, face.stroke);
+    fillQuad(buf, face, color, fill);
   }
-}
-
-function drawMidPlanes() {
-  const planes = [
-    [{ x: 1, y: 0, z: 0 }, { x: 1, y: 2, z: 0 }, { x: 1, y: 2, z: 2 }, { x: 1, y: 0, z: 2 }],
-    [{ x: 0, y: 1, z: 0 }, { x: 2, y: 1, z: 0 }, { x: 2, y: 1, z: 2 }, { x: 0, y: 1, z: 2 }],
-    [{ x: 0, y: 0, z: 1 }, { x: 2, y: 0, z: 1 }, { x: 2, y: 2, z: 1 }, { x: 0, y: 2, z: 1 }],
+  const corners = [
+    p(x0, y0, z0), p(x1, y0, z0), p(x1, y1, z0), p(x0, y1, z0),
+    p(x0, y0, z1), p(x1, y0, z1), p(x1, y1, z1), p(x0, y1, z1),
   ];
-
-  for (const plane of planes) {
-    drawPolygon(plane, "rgba(255, 255, 255, 0.035)", "rgba(255, 255, 255, 0.22)");
-  }
-}
-
-function drawOuterWireframe() {
-  const corners = cuboidPoints([0, 2], [0, 2], [0, 2]);
   const edges = [
-    ["000", "200"], ["200", "220"], ["220", "020"], ["020", "000"],
-    ["002", "202"], ["202", "222"], ["222", "022"], ["022", "002"],
-    ["000", "002"], ["200", "202"], ["220", "222"], ["020", "022"],
+    [0, 1], [1, 2], [2, 3], [3, 0],
+    [4, 5], [5, 6], [6, 7], [7, 4],
+    [0, 4], [1, 5], [2, 6], [3, 7],
   ];
-
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "rgba(238, 244, 255, 0.78)";
   for (const [a, b] of edges) {
-    drawLine(corners[a], corners[b]);
+    drawAsciiLine(buf, corners[a], corners[b], color, 0.06);
   }
 }
 
-function drawTicksAndAxes() {
+function drawHouse(buf) {
+  const stone = "#e6d4b8";
+  const stoneDim = "#cbb694";
+  const brick = "#b46348";
+  const rail = "#d5dde4";
+  const glow = "#ffd056";
+
+  for (let i = 0; i < 10; i += 1) {
+    const z0 = 1.5 + i * 0.045;
+    const z1 = z0 + 0.045;
+    fillQuad(
+      buf,
+      [
+        { x: 0.12, y: 0.02, z: z0 },
+        { x: 1.88, y: 0.02, z: z0 },
+        { x: 1.88, y: 0.02, z: z1 },
+        { x: 0.12, y: 0.02, z: z1 },
+      ],
+      i % 2 === 0 ? "#2f6d3c" : "#3d8750",
+      i % 2 === 0 ? "/" : "\\",
+    );
+  }
+
+  drawBox(buf, 0.28, 1.72, 0.02, 0.42, 0.52, 1.46, "#4a5560", "#");
+  drawBox(buf, 0.38, 1.62, 0.08, 0.38, 1.44, 1.52, "#8fd4ea", "o");
+  for (const x of [0.48, 0.72, 0.96, 1.2, 1.44]) {
+    drawLitWindow(buf, x, x + 0.16, 0.1, 0.34, 1.5, 1.54, false);
+  }
+  drawBox(buf, 0.42, 0.7, 0.04, 0.14, 1.54, 1.72, "#1f242b", "=");
+  drawBox(buf, 0.78, 1.06, 0.04, 0.14, 1.54, 1.72, "#1f242b", "=");
+  drawBox(buf, 1.14, 1.42, 0.04, 0.12, 1.58, 1.7, "#f2f2f2", "=");
+
+  drawBox(buf, 0.16, 1.84, 0.4, 0.5, 0.48, 1.66, stone, "=");
+  drawBox(buf, 0.16, 1.84, 0.5, 0.64, 1.62, 1.68, rail, "|");
+  for (const x of [0.22, 0.52, 0.82, 1.12, 1.42, 1.72]) {
+    drawBox(buf, x - 0.03, x + 0.03, 0.5, 0.66, 1.62, 1.7, stoneDim, "+");
+  }
+
+  for (let step = 0; step < 5; step += 1) {
+    const t = step / 5;
+    const y1 = 0.48 - t * 0.42;
+    const y0 = y1 - 0.08;
+    const z0 = 1.66 + t * 0.22;
+    const z1 = z0 + 0.08;
+    drawBox(buf, 0.28, 0.52, y0, y1, z0, z1, stoneDim, "=");
+    drawBox(buf, 1.48, 1.72, y0, y1, z0, z1, stoneDim, "=");
+  }
+
+  drawBox(buf, 0.22, 1.78, 0.48, 1.52, 0.46, 1.46, stone, "#");
+  drawBox(buf, 0.22, 0.5, 0.48, 1.46, 0.5, 1.44, brick, "#");
+  drawBox(buf, 1.5, 1.78, 0.48, 1.46, 0.5, 1.44, brick, "#");
+  drawBox(buf, 0.7, 1.3, 0.48, 1.54, 1.38, 1.54, stone, "#");
+
+  const pedL = { x: 0.7, y: 1.54, z: 1.54 };
+  const pedR = { x: 1.3, y: 1.54, z: 1.54 };
+  const pedPeak = { x: 1, y: 1.9, z: 1.54 };
+  const pedLb = { x: 0.72, y: 1.54, z: 1.4 };
+  const pedRb = { x: 1.28, y: 1.54, z: 1.4 };
+  const pedPeakB = { x: 1, y: 1.86, z: 1.4 };
+  fillQuad(buf, [pedL, pedPeak, pedR, pedL], "#f3e6cc", "A");
+  fillQuad(buf, [pedLb, pedPeakB, pedRb, pedLb], stoneDim, "A");
+  fillQuad(buf, [pedL, pedPeak, pedPeakB, pedLb], glow, "/");
+  fillQuad(buf, [pedR, pedPeak, pedPeakB, pedRb], "#ffe08a", "/");
+
+  drawBox(buf, 0.82, 1.18, 1.02, 1.16, 1.52, 1.66, stoneDim, "=");
+  drawBox(buf, 0.82, 1.18, 1.16, 1.26, 1.62, 1.68, "#3a424c", "|");
+
+  const facadeZ0 = 1.46;
+  const facadeZ1 = 1.52;
+  const bays = [0.3, 0.52, 0.76, 1.08, 1.32, 1.54];
+  for (const x of bays) {
+    drawLitWindow(buf, x, x + 0.16, 0.58, 0.98, facadeZ0, facadeZ1, true);
+    drawLitWindow(buf, x + 0.02, x + 0.14, 1.2, 1.4, facadeZ0, facadeZ1, false);
+  }
+  for (const x of [0.26, 0.48, 0.7, 1.02, 1.26, 1.48, 1.7]) {
+    drawBox(buf, x - 0.025, x + 0.025, 0.5, 1.48, 1.42, 1.5, stoneDim, "|");
+  }
+
+  drawBox(buf, 0.2, 1.8, 1.5, 1.6, 0.44, 1.48, stoneDim, "=");
+  for (const x of [0.24, 0.56, 0.88, 1.12, 1.44, 1.76]) {
+    drawBox(buf, x - 0.03, x + 0.03, 1.58, 1.7, 1.42, 1.5, stone, "+");
+    const lamp = toCell({ x, y: 1.72, z: 1.48 });
+    plotCell(buf, Math.round(lamp.x), Math.round(lamp.y), "*", lamp.z + 0.1, glow);
+  }
+  for (const [x, z] of [
+    [0.38, 0.62],
+    [1.62, 0.62],
+    [0.38, 1.22],
+    [1.62, 1.22],
+  ]) {
+    drawBox(buf, x - 0.08, x + 0.08, 1.56, 1.94, z - 0.08, z + 0.08, stone, "#");
+  }
+}
+
+function drawHouseLabels(buf) {
+  const tags = [
+    { text: "[pediment]", point: { x: 1, y: 1.82, z: 1.7 }, color: "#f3e6cc" },
+    { text: "[windows]", point: { x: 0.38, y: 0.78, z: 1.62 }, color: "#ffd056" },
+    { text: "[terrace]", point: { x: 1.55, y: 0.46, z: 1.74 }, color: "#e6d4b8" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function drawCart(buf) {
+  const red = "#ff1f2d";
+  const redDark = "#c41222";
+  const redRim = "#e01424";
+  const steel = "#cfd6dc";
+  const steelDark = "#8b949e";
+
+  const trl = { x: 0.26, y: 1.5, z: 1.44 };
+  const trr = { x: 1.74, y: 1.5, z: 1.44 };
+  const tfl = { x: 0.46, y: 1.22, z: 0.3 };
+  const tfr = { x: 1.54, y: 1.22, z: 0.3 };
+  const brl = { x: 0.38, y: 0.7, z: 1.3 };
+  const brr = { x: 1.62, y: 0.7, z: 1.3 };
+  const bfl = { x: 0.52, y: 0.66, z: 0.4 };
+  const bfr = { x: 1.48, y: 0.66, z: 0.4 };
+
+  const center = { x: 1, y: 1.05, z: 0.88 };
+  const inset = (p, t = 0.07) => lerp3(p, center, t);
+  const itrl = inset(trl);
+  const itrr = inset(trr);
+  const itfl = inset(tfl);
+  const itfr = inset(tfr);
+  const ibrl = inset(brl, 0.1);
+  const ibrr = inset(brr, 0.1);
+  const ibfl = inset(bfl, 0.1);
+  const ibfr = inset(bfr, 0.1);
+
+  const plateFront = (u, v) => v < 0.34 ? false : cartOvalHole(u, v, 5, 3);
+  const plateRear = (u, v) => v < 0.3 ? false : cartOvalHole(u, v, 5, 3);
+
+  drawPerforatedQuad(buf, tfl, trl, brl, bfl, red, "#", 7, 4);
+  drawPerforatedQuad(buf, tfr, trr, brr, bfr, red, "#", 7, 4);
+  drawPerforatedQuad(buf, tfl, tfr, bfr, bfl, red, "#", 5, 4, plateFront);
+  drawPerforatedQuad(buf, trl, trr, brr, brl, redDark, "#", 5, 3, plateRear);
+  drawPerforatedQuad(buf, bfl, bfr, brr, brl, redDark, "#", 5, 4);
+
+  drawPerforatedQuad(buf, itfl, itrl, ibrl, ibfl, redDark, "#", 6, 3);
+  drawPerforatedQuad(buf, itfr, itrr, ibrr, ibfr, redDark, "#", 6, 3);
+  drawPerforatedQuad(buf, itfl, itfr, ibfr, ibfl, redDark, "#", 4, 3);
+  drawPerforatedQuad(buf, itrl, itrr, ibrr, ibrl, redDark, "#", 4, 3);
+
+  fillQuad(buf, [tfl, tfr, lerp3(tfr, bfr, 0.32), lerp3(tfl, bfl, 0.32)], red, "#");
+  fillQuad(buf, [trl, trr, lerp3(trr, brr, 0.28), lerp3(trl, brl, 0.28)], red, "#");
+  fillQuad(buf, [tfl, tfr, itfr, itfl], redRim, "=");
+  fillQuad(buf, [trl, trr, itrr, itrl], redRim, "=");
+  fillQuad(buf, [tfl, trl, itrl, itfl], redRim, "=");
+  fillQuad(buf, [tfr, trr, itrr, itfr], redRim, "=");
+
+  drawTube(buf, tfl, tfr, redRim);
+  drawTube(buf, trl, trr, redRim);
+  drawTube(buf, tfl, trl, redRim);
+  drawTube(buf, tfr, trr, redRim);
+
+  const seatL = lerp3(itrl, itfl, 0.16);
+  const seatR = lerp3(itrr, itfr, 0.16);
+  const seatLB = { x: seatL.x + 0.04, y: 0.86, z: seatL.z - 0.08 };
+  const seatRB = { x: seatR.x - 0.04, y: 0.86, z: seatR.z - 0.08 };
+  for (const t of [0.08, 0.26, 0.44, 0.62, 0.8, 0.92]) {
+    drawAsciiLine(buf, lerp3(seatL, seatR, t), lerp3(seatLB, seatRB, t), steel, 0.05);
+  }
+  for (const t of [0.05, 0.28, 0.5, 0.72, 0.95]) {
+    drawAsciiLine(buf, lerp3(seatL, seatLB, t), lerp3(seatR, seatRB, t), steel, 0.05);
+  }
+  drawAsciiLine(buf, lerp3(seatLB, seatRB, 0.22), { x: 0.78, y: 0.78, z: 1.12 }, steel, 0.04);
+  drawAsciiLine(buf, lerp3(seatLB, seatRB, 0.78), { x: 1.22, y: 0.78, z: 1.12 }, steel, 0.04);
+
+  const handleL = { x: 0.3, y: 1.78, z: 1.8 };
+  const handleR = { x: 1.7, y: 1.78, z: 1.8 };
+  const neckL = { x: 0.28, y: 1.62, z: 1.58 };
+  const neckR = { x: 1.72, y: 1.62, z: 1.58 };
+  drawTube(buf, trl, neckL, steel);
+  drawTube(buf, neckL, handleL, steel);
+  drawTube(buf, trr, neckR, steel);
+  drawTube(buf, neckR, handleR, steel);
+  drawTube(buf, handleL, handleR, steel);
+  const gripL = { x: 0.48, y: 1.74, z: 1.76 };
+  const gripR = { x: 1.52, y: 1.74, z: 1.76 };
+  const gripLB = { x: 0.48, y: 1.84, z: 1.84 };
+  const gripRB = { x: 1.52, y: 1.84, z: 1.84 };
+  fillQuad(buf, [gripL, gripR, gripRB, gripLB], red, "=");
+  fillQuad(
+    buf,
+    [
+      { x: gripL.x, y: gripL.y - 0.05, z: gripL.z },
+      { x: gripR.x, y: gripR.y - 0.05, z: gripR.z },
+      { x: gripRB.x, y: gripRB.y - 0.05, z: gripRB.z },
+      { x: gripLB.x, y: gripLB.y - 0.05, z: gripLB.z },
+    ],
+    redRim,
+    "=",
+  );
+
+  const rearLeft = { x: 0.42, y: 0.2, z: 1.28 };
+  const rearRight = { x: 1.58, y: 0.2, z: 1.28 };
+  const frontLeft = { x: 0.52, y: 0.18, z: 0.42 };
+  const frontRight = { x: 1.48, y: 0.18, z: 0.42 };
+  drawTube(buf, neckL, rearLeft, steelDark);
+  drawTube(buf, neckR, rearRight, steelDark);
+  drawTube(buf, brl, rearLeft, steelDark);
+  drawTube(buf, brr, rearRight, steelDark);
+  drawTube(buf, bfl, frontLeft, steelDark);
+  drawTube(buf, bfr, frontRight, steelDark);
+  drawTube(buf, rearLeft, frontLeft, steel);
+  drawTube(buf, rearRight, frontRight, steel);
+  drawTube(buf, { x: rearLeft.x, y: 0.34, z: rearLeft.z }, { x: frontLeft.x, y: 0.34, z: frontLeft.z }, steel);
+  drawTube(buf, { x: rearRight.x, y: 0.34, z: rearRight.z }, { x: frontRight.x, y: 0.34, z: frontRight.z }, steel);
+  drawTube(buf, { x: rearLeft.x, y: 0.22, z: rearLeft.z }, { x: rearRight.x, y: 0.22, z: rearRight.z }, steel);
+  drawTube(buf, { x: frontLeft.x, y: 0.22, z: frontLeft.z }, { x: frontRight.x, y: 0.22, z: frontRight.z }, steel);
+
+  for (const x of [0.56, 0.74, 0.92, 1.1, 1.28, 1.44]) {
+    drawAsciiLine(buf, { x, y: 0.3, z: 0.46 }, { x, y: 0.3, z: 1.2 }, steel, 0.04);
+  }
+  drawAsciiLine(buf, { x: 0.5, y: 0.3, z: 0.46 }, { x: 1.5, y: 0.3, z: 0.46 }, steel, 0.04);
+  drawAsciiLine(buf, { x: 0.5, y: 0.3, z: 1.2 }, { x: 1.5, y: 0.3, z: 1.2 }, steel, 0.04);
+
+  drawWheelYZ(buf, rearLeft.x, 0.2, rearLeft.z, 0.18, 0.1, false);
+  drawWheelYZ(buf, rearRight.x, 0.2, rearRight.z, 0.18, 0.1, false);
+  drawWheelYZ(buf, frontLeft.x, 0.18, frontLeft.z, 0.16, 0.09, true);
+  drawWheelYZ(buf, frontRight.x, 0.18, frontRight.z, 0.16, 0.09, true);
+}
+
+function drawCartLabels(buf) {
+  const tags = [
+    { text: "[basket]", point: { x: 1.05, y: 0.98, z: 0.24 }, color: "#ff1f2d" },
+    { text: "[handle]", point: { x: 1.05, y: 1.88, z: 1.86 }, color: "#ff1f2d" },
+    { text: "[rack]", point: { x: 1.05, y: 0.24, z: 0.68 }, color: "#cfd6dc" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function torusXZ(u, v, cx, y, cz, R, r) {
+  const ring = R + r * Math.cos(v);
+  return {
+    x: cx + ring * Math.cos(u),
+    y: y + r * Math.sin(v),
+    z: cz + ring * Math.sin(u),
+  };
+}
+
+function drawTorusXZ(buf, cx, y, cz, R, r, color, fill, uSeg = 20, vSeg = 12) {
+  for (let i = 0; i < uSeg; i += 1) {
+    for (let j = 0; j < vSeg; j += 1) {
+      const u0 = (i / uSeg) * Math.PI * 2;
+      const u1 = ((i + 1) / uSeg) * Math.PI * 2;
+      const v0 = (j / vSeg) * Math.PI * 2;
+      const v1 = ((j + 1) / vSeg) * Math.PI * 2;
+      fillQuad(
+        buf,
+        [
+          torusXZ(u0, v0, cx, y, cz, R, r),
+          torusXZ(u1, v0, cx, y, cz, R, r),
+          torusXZ(u1, v1, cx, y, cz, R, r),
+          torusXZ(u0, v1, cx, y, cz, R, r),
+        ],
+        color,
+        fill,
+      );
+    }
+  }
+}
+
+function fillDiscFacingZ(buf, cx, cy, z, radius, color, fill, segments = 14) {
+  const center = { x: cx, y: cy, z };
+  for (let i = 0; i < segments; i += 1) {
+    const a0 = (i / segments) * Math.PI * 2;
+    const a1 = ((i + 1) / segments) * Math.PI * 2;
+    fillQuad(
+      buf,
+      [
+        center,
+        { x: cx + Math.cos(a0) * radius, y: cy + Math.sin(a0) * radius, z },
+        { x: cx + Math.cos(a1) * radius, y: cy + Math.sin(a1) * radius, z },
+        center,
+      ],
+      color,
+      fill,
+    );
+  }
+}
+
+function drawWhoopProp(buf, cx, y, cz, radius, blades, phase, color) {
+  for (let b = 0; b < blades; b += 1) {
+    const a = phase + (b / blades) * Math.PI * 2;
+    const tip = { x: cx + Math.cos(a) * radius, y, z: cz + Math.sin(a) * radius };
+    const left = {
+      x: cx + Math.cos(a - 0.42) * radius * 0.18,
+      y: y + 0.01,
+      z: cz + Math.sin(a - 0.42) * radius * 0.18,
+    };
+    const right = {
+      x: cx + Math.cos(a + 0.42) * radius * 0.18,
+      y: y - 0.01,
+      z: cz + Math.sin(a + 0.42) * radius * 0.18,
+    };
+    const hub = { x: cx, y, z: cz };
+    fillQuad(buf, [hub, left, tip, right], color, "/");
+    drawAsciiLine(buf, hub, tip, color, 0.08);
+  }
+}
+
+function drawDrone(buf) {
+  const frame = "#e8eef4";
+  const frameDim = "#c5ced8";
+  const pink = "#ff4fa8";
+  const pinkDeep = "#e03790";
+  const pcb = "#1b1e24";
+  const motor = "#2b3038";
+  const bell = "#3d6ea8";
+  const wire = "#111318";
+  const ductY = 1.02;
+  const R = 0.35;
+  const r = 0.075;
+  const offset = 0.39;
+  const hubs = [
+    { x: 1 - offset, z: 1 - offset, spin: 0.15 },
+    { x: 1 + offset, z: 1 - offset, spin: -0.15 },
+    { x: 1 - offset, z: 1 + offset, spin: -0.15 },
+    { x: 1 + offset, z: 1 + offset, spin: 0.15 },
+  ];
+
+  drawBox(buf, 0.86, 1.14, 0.88, 0.98, 0.86, 1.14, "#252830", "#");
+  drawBox(buf, 0.84, 1.16, 0.98, 1.08, 0.84, 1.16, pcb, "#");
+
+  for (const hub of hubs) {
+    drawTorusXZ(buf, hub.x, ductY, hub.z, R, r, frame, "@");
+    drawTube(buf, { x: 1, y: 1.02, z: 1 }, { x: hub.x, y: ductY, z: hub.z }, frameDim);
+    drawAsciiLine(buf, { x: 1, y: 1.04, z: 1 }, { x: hub.x, y: ductY + 0.02, z: hub.z }, wire, 0.04);
+    fillDiscAt(buf, hub.x, ductY - 0.04, hub.z, 0.07, bell, "*", 8);
+    fillDiscAt(buf, hub.x, ductY + 0.02, hub.z, 0.055, motor, "#", 8);
+    fillDiscAt(buf, hub.x, ductY + 0.07, hub.z, 0.03, "#4a5160", "+", 6);
+    drawWhoopProp(buf, hub.x, ductY + 0.08, hub.z, 0.26, 3, hub.spin, pink);
+  }
+
+  const legL = { x: 0.88, y: 1.08, z: 1.02 };
+  const legR = { x: 1.12, y: 1.08, z: 1.02 };
+  const peak = { x: 1, y: 1.3, z: 1.14 };
+  const noseL = { x: 0.92, y: 1.08, z: 1.28 };
+  const noseR = { x: 1.08, y: 1.08, z: 1.28 };
+  const nose = { x: 1, y: 1.12, z: 1.34 };
+  fillQuad(buf, [legL, peak, nose, noseL], pink, "A");
+  fillQuad(buf, [legR, peak, nose, noseR], pinkDeep, "A");
+  fillQuad(buf, [legL, peak, legR, legL], pink, "A");
+  fillQuad(buf, [noseL, nose, noseR, noseL], pinkDeep, "A");
+  fillDiscFacingZ(buf, 1, 1.1, 1.36, 0.07, "#0d0d0f", "O");
+  fillDiscFacingZ(buf, 1, 1.1, 1.38, 0.035, "#3a3a40", "*");
+
+  drawAsciiLine(buf, { x: 1.02, y: 1.08, z: 0.86 }, { x: 1.08, y: 1.62, z: 0.74 }, wire, 0.05);
+  const tip = toCell({ x: 1.08, y: 1.64, z: 0.72 });
+  plotCell(buf, Math.round(tip.x), Math.round(tip.y), "*", tip.z + 0.1, "#f4f4f4");
+  drawAsciiLine(buf, { x: 0.96, y: 1.08, z: 0.88 }, { x: 0.9, y: 1.4, z: 0.7 }, "#c5cdd4", 0.06);
+
+  for (const [x, z] of [
+    [0.9, 0.9],
+    [1.1, 0.9],
+    [0.9, 1.1],
+    [1.1, 1.1],
+  ]) {
+    const screw = toCell({ x, y: 1.09, z });
+    plotCell(buf, Math.round(screw.x), Math.round(screw.y), "+", screw.z + 0.12, "#d0d5dc");
+  }
+}
+
+function drawDroneLabels(buf) {
+  const tags = [
+    { text: "[duct]", point: { x: 1.52, y: 1.02, z: 0.5 }, color: "#e8eef4" },
+    { text: "[prop]", point: { x: 0.5, y: 1.22, z: 1.5 }, color: "#ff4fa8" },
+    { text: "[cam]", point: { x: 1, y: 1.22, z: 1.48 }, color: "#ff4fa8" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function drawTruck(buf) {
+  const silver = "#c5ccd4";
+  const silverDim = "#9aa3ad";
+  const black = "#1a1c20";
+  const glass = "#9ec9e8";
+  const amber = "#e8943a";
+
+  drawBox(buf, 0.26, 1.86, 0.3, 0.44, 0.54, 1.46, black, "=");
+
+  drawBox(buf, 0.18, 0.46, 0.42, 0.78, 0.5, 1.5, silver, "#");
+  drawBox(buf, 0.42, 0.96, 0.42, 1.28, 0.46, 1.54, silver, "#");
+  fillQuad(
+    buf,
+    [
+      { x: 0.46, y: 0.78, z: 0.5 },
+      { x: 0.46, y: 0.78, z: 1.5 },
+      { x: 0.54, y: 1.26, z: 1.5 },
+      { x: 0.54, y: 1.26, z: 0.5 },
+    ],
+    glass,
+    "/",
+  );
+  drawBox(buf, 0.5, 0.92, 0.82, 1.18, 1.5, 1.56, glass, "o");
+  drawBox(buf, 0.5, 0.92, 0.82, 1.18, 0.44, 0.5, glass, "o");
+  drawBox(buf, 0.88, 0.94, 0.7, 1.16, 0.48, 1.52, glass, "|");
+
+  drawBox(buf, 0.12, 0.28, 0.44, 0.86, 0.48, 1.52, black, "#");
+  drawBox(buf, 0.12, 0.26, 0.7, 0.84, 0.52, 0.72, "#eef4ff", "=");
+  drawBox(buf, 0.12, 0.26, 0.7, 0.84, 1.28, 1.48, "#eef4ff", "=");
+  drawBox(buf, 0.12, 0.24, 0.7, 0.76, 0.5, 0.6, amber, "=");
+  drawBox(buf, 0.12, 0.24, 0.7, 0.76, 1.4, 1.5, amber, "=");
+  drawPerforatedQuad(
+    buf,
+    { x: 0.14, y: 0.62, z: 0.54 },
+    { x: 0.14, y: 0.62, z: 1.46 },
+    { x: 0.14, y: 0.46, z: 1.46 },
+    { x: 0.14, y: 0.46, z: 0.54 },
+    "#2c3036",
+    "o",
+    8,
+    3,
+  );
+  drawBox(buf, 0.1, 0.3, 0.32, 0.46, 0.46, 1.54, black, "=");
+  drawBox(buf, 0.12, 0.26, 0.34, 0.44, 0.86, 1.14, "#f4f4f4", "=");
+  writeOnMesh(buf, "TOYOTA", { x: 0.16, y: 0.76, z: 1 }, "#d8dde3");
+  writeOnMesh(buf, "TOYOTA", { x: 0.18, y: 0.38, z: 1 }, black);
+
+  drawBox(buf, 0.38, 0.5, 0.96, 1.12, 1.52, 1.64, black, "#");
+  drawBox(buf, 0.38, 0.5, 0.96, 1.12, 0.36, 0.48, black, "#");
+
+  drawBox(buf, 0.94, 1.9, 0.58, 0.7, 0.5, 1.5, silverDim, "=");
+  drawBox(buf, 0.94, 1.88, 0.7, 0.98, 0.5, 0.58, silver, "#");
+  drawBox(buf, 0.94, 1.88, 0.7, 0.98, 1.42, 1.5, silver, "#");
+  drawBox(buf, 1.82, 1.9, 0.7, 0.98, 0.52, 1.48, silver, "#");
+  for (const x of [1.04, 1.18, 1.32, 1.46, 1.6, 1.74]) {
+    drawAsciiLine(buf, { x, y: 0.72, z: 0.5 }, { x, y: 0.96, z: 0.5 }, silverDim, 0.05);
+    drawAsciiLine(buf, { x, y: 0.72, z: 1.5 }, { x, y: 0.96, z: 1.5 }, silverDim, 0.05);
+  }
+
+  for (const [x, z] of [
+    [0.5, 0.48],
+    [0.5, 1.52],
+    [1.48, 0.48],
+    [1.48, 1.52],
+  ]) {
+    drawWheelXY(buf, x, 0.22, z, 0.2, 0.12);
+  }
+}
+
+function drawTruckLabels(buf) {
+  const tags = [
+    { text: "[grille]", point: { x: 0.12, y: 0.7, z: 1.62 }, color: "#d8dde3" },
+    { text: "[cab]", point: { x: 0.7, y: 1.22, z: 1.6 }, color: "#c5ccd4" },
+    { text: "[bed]", point: { x: 1.5, y: 0.86, z: 1.62 }, color: "#9aa3ad" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function drawRoo(buf) {
+  const tan = "#c48a4a";
+  const tanDark = "#9a6230";
+  const cream = "#f3e6d0";
+  const hair = "#16100c";
+  const water = "#3d6d88";
+  const waterHi = "#7eb3c9";
+  const rock = "#6a6e76";
+  const snow = "#f2f4f6";
+  const pink = "#e8a0a8";
+  const snout = "#2a1c16";
+  const cx = 1.02;
+  const cz = 1.02;
+
+  fillDiscAt(buf, 1, 0.12, 1.05, 0.98, water, "~", 14);
+  fillDiscAt(buf, 1, 0.22, 1.05, 0.9, waterHi, "~", 12);
+  fillDiscAt(buf, 1, 0.32, 1.05, 0.78, water, "o", 12);
+  for (const r of [0.42, 0.58, 0.74]) {
+    for (let i = 0; i < 10; i += 1) {
+      const a = (i / 10) * Math.PI * 2;
+      drawAsciiLine(
+        buf,
+        { x: cx + Math.cos(a) * r, y: 0.34, z: cz + Math.sin(a) * r },
+        { x: cx + Math.cos(a + 0.4) * (r + 0.04), y: 0.34, z: cz + Math.sin(a + 0.4) * (r + 0.04) },
+        "#9ec9dc",
+        0.03,
+      );
+    }
+  }
+
+  drawBox(buf, 1.42, 1.88, 0.28, 0.92, 0.72, 1.42, rock, "#");
+  drawBox(buf, 1.48, 1.86, 0.88, 1.02, 0.78, 1.38, snow, "=");
+  drawBox(buf, 1.58, 1.92, 0.18, 0.62, 1.18, 1.62, rock, "#");
+  drawBox(buf, 1.62, 1.9, 0.58, 0.7, 1.22, 1.58, snow, "=");
+
+  stackDiscs(buf, cx, 0.22, 0.58, cz, 0.36, 0.46, tanDark, "O", 5);
+  stackDiscs(buf, cx + 0.1, 0.24, 0.52, cz + 0.04, 0.2, 0.28, cream, "o", 4);
+  fillEllipsoid(buf, cx - 0.22, 0.48, cz + 0.08, 0.38, 0.48, 0.36, tan, "O", { bulge: 0.34, highlight: "#e8c48a" });
+  fillEllipsoid(buf, cx + 0.22, 0.48, cz + 0.08, 0.38, 0.48, 0.36, tan, "O", { bulge: 0.34, highlight: "#e8c48a" });
+  fillEllipsoid(buf, cx, 0.62, cz, 0.58, 0.34, 0.5, tan, "O", { bulge: 0.36, highlight: "#e8c48a" });
+  fillEllipsoid(buf, cx, 1.02, cz + 0.04, 0.46, 0.42, 0.38, tan, "#", { bulge: 0.3, highlight: "#e8c48a" });
+  fillEllipsoid(buf, cx + 0.02, 0.98, cz + 0.16, 0.24, 0.34, 0.16, cream, "+");
+  fillEllipsoid(buf, cx - 0.16, 1.08, cz + 0.22, 0.2, 0.18, 0.16, cream, "o", { highlight: "#fff8ee" });
+  fillEllipsoid(buf, cx + 0.18, 1.08, cz + 0.22, 0.2, 0.18, 0.16, cream, "o", { highlight: "#fff8ee" });
+  fillDiscAt(buf, cx - 0.08, 0.98, cz + 0.22, 0.03, pink, "*", 6);
+  fillDiscAt(buf, cx + 0.12, 0.98, cz + 0.22, 0.03, pink, "*", 6);
+
+  const hip = { x: cx, y: 0.58, z: cz };
+  const tail = [
+    { x: cx - 0.12, y: 0.62, z: cz - 0.08 },
+    { x: cx - 0.32, y: 0.78, z: cz - 0.18 },
+    { x: cx - 0.48, y: 1.02, z: cz - 0.12 },
+    { x: cx - 0.42, y: 1.22, z: cz + 0.02 },
+    { x: cx - 0.28, y: 1.28, z: cz + 0.12 },
+  ];
+  let prev = hip;
+  const tailR = [0.12, 0.11, 0.09, 0.07, 0.05];
+  for (let i = 0; i < tail.length; i += 1) {
+    drawTube(buf, prev, tail[i], tanDark);
+    fillEllipsoid(buf, tail[i].x, tail[i].y, tail[i].z, tailR[i], tailR[i] * 0.85, tailR[i], i > 2 ? cream : tan, "O");
+    prev = tail[i];
+  }
+
+  drawTube(buf, { x: cx + 0.16, y: 1.08, z: cz }, { x: 1.52, y: 0.86, z: 1.22 }, tan);
+  drawTube(buf, { x: 1.52, y: 0.86, z: 1.22 }, { x: 1.62, y: 0.78, z: 1.18 }, tanDark);
+  fillDiscAt(buf, 1.64, 0.76, 1.16, 0.07, tanDark, "#", 6);
+  drawTube(buf, { x: cx - 0.16, y: 1.02, z: cz + 0.04 }, { x: 0.72, y: 0.72, z: 1.18 }, tan);
+  fillDiscAt(buf, 0.7, 0.7, 1.2, 0.07, tanDark, "#", 6);
+
+  fillEllipsoid(buf, cx, 1.36, cz, 0.17, 0.18, 0.16, tan, "O");
+  fillEllipsoid(buf, cx, 1.34, cz + 0.22, 0.07, 0.06, 0.12, tanDark, "#");
+  fillDiscAt(buf, cx, 1.34, cz + 0.34, 0.05, snout, "*", 6);
+  fillDiscAt(buf, cx - 0.06, 1.42, cz + 0.16, 0.035, "#c41e3a", "*", 5);
+  fillDiscAt(buf, cx + 0.06, 1.42, cz + 0.16, 0.035, "#c41e3a", "*", 5);
+
+  fillEllipsoid(buf, cx - 0.14, 1.68, cz, 0.06, 0.18, 0.05, tan, "#");
+  fillEllipsoid(buf, cx + 0.14, 1.68, cz, 0.06, 0.18, 0.05, tan, "#");
+  fillEllipsoid(buf, cx - 0.14, 1.68, cz + 0.04, 0.03, 0.14, 0.03, pink, "+");
+  fillEllipsoid(buf, cx + 0.14, 1.68, cz + 0.04, 0.03, 0.14, 0.03, pink, "+");
+
+  stackDiscs(buf, cx, 1.48, 1.62, cz - 0.06, 0.17, 0.14, hair, "#", 4);
+  drawBox(buf, cx - 0.16, cx + 0.16, 0.7, 1.5, cz - 0.22, cz - 0.08, hair, "#");
+  drawAsciiLine(buf, { x: cx - 0.12, y: 1.48, z: cz - 0.1 }, { x: cx - 0.2, y: 0.72, z: cz - 0.06 }, hair, 0.08);
+  drawAsciiLine(buf, { x: cx + 0.1, y: 1.48, z: cz - 0.1 }, { x: cx + 0.18, y: 0.7, z: cz - 0.04 }, hair, 0.08);
+}
+
+function drawRooLabels(buf) {
+  const tags = [
+    { text: "[ears]", point: { x: 1.02, y: 1.82, z: 1.18 }, color: "#e8a0a8" },
+    { text: "[tail]", point: { x: 0.48, y: 1.18, z: 0.88 }, color: "#c48a4a" },
+    { text: "[onsen]", point: { x: 1.15, y: 0.22, z: 1.55 }, color: "#7eb3c9" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function drawWolf(buf) {
+  const cream = "#f4ebe3";
+  const creamHi = "#fffaf4";
+  const black = "#16161a";
+  const charcoal = "#2a2a30";
+  const pink = "#e89aa8";
+  const cx = 1;
+  const cz = 1.12;
+  const gloss = { highlight: creamHi, bulge: 0.42, uSeg: 28, vSeg: 20, gloss: 0.34, hot: 0.64 };
+
+  fillEllipsoid(buf, cx - 0.34, 0.88, cz + 0.18, 0.78, 0.72, 0.68, cream, "O", gloss);
+  fillEllipsoid(buf, cx + 0.34, 0.88, cz + 0.18, 0.78, 0.72, 0.68, cream, "O", gloss);
+  fillEllipsoid(buf, cx - 0.56, 0.72, cz - 0.02, 0.3, 0.52, 0.3, black, "#", { bulge: 0.18, highlight: "#3a3a42" });
+  fillEllipsoid(buf, cx + 0.56, 0.72, cz - 0.02, 0.3, 0.52, 0.3, black, "#", { bulge: 0.18, highlight: "#3a3a42" });
+
+  fillEllipsoid(buf, cx - 0.28, 0.32, cz + 0.08, 0.42, 0.58, 0.4, cream, "O", { ...gloss, bulge: 0.3 });
+  fillEllipsoid(buf, cx + 0.28, 0.32, cz + 0.08, 0.42, 0.58, 0.4, cream, "O", { ...gloss, bulge: 0.3 });
+  fillEllipsoid(buf, cx - 0.28, 0.12, cz + 0.04, 0.32, 0.28, 0.3, charcoal, "#", { bulge: 0.12, highlight: "#4a4a52" });
+  fillEllipsoid(buf, cx + 0.28, 0.12, cz + 0.04, 0.32, 0.28, 0.3, charcoal, "#", { bulge: 0.12, highlight: "#4a4a52" });
+
+  fillEllipsoid(buf, cx, 0.58, cz + 0.28, 0.07, 0.1, 0.05, pink, "*");
+
+  fillDiscAt(buf, cx - 0.22, 1.12, cz + 0.52, 0.05, creamHi, "*", 8);
+  fillDiscAt(buf, cx + 0.34, 0.98, cz + 0.5, 0.045, creamHi, "*", 8);
+  fillDiscAt(buf, cx - 0.08, 0.72, cz + 0.54, 0.03, creamHi, "*", 6);
+
+  fillEllipsoid(buf, cx, 1.28, cz - 0.02, 0.18, 0.26, 0.14, cream, "O", { bulge: 0.1 });
+  drawBox(buf, cx - 0.2, cx + 0.22, 1.16, 1.44, cz - 0.16, cz + 0.12, charcoal, "#");
+  drawBox(buf, cx - 0.18, cx - 0.02, 1.14, 1.2, cz - 0.08, cz + 0.1, charcoal, "~");
+  drawBox(buf, cx + 0.04, cx + 0.2, 1.14, 1.18, cz - 0.06, cz + 0.08, charcoal, "~");
+  fillDiscAt(buf, cx, 1.5, cz, 0.11, charcoal, "=", 10);
+  for (let i = 0; i < 6; i += 1) {
+    const a = (i / 6) * Math.PI * 2;
+    drawAsciiLine(
+      buf,
+      { x: cx + Math.cos(a) * 0.1, y: 1.5, z: cz + Math.sin(a) * 0.1 },
+      { x: cx + Math.cos(a) * 0.16, y: 1.54, z: cz + Math.sin(a) * 0.16 },
+      "#c8c8ce",
+      0.03,
+    );
+  }
+
+  fillEllipsoid(buf, 0.58, 1.66, 0.96, 0.16, 0.14, 0.18, cream, "O", { bulge: 0.08, highlight: creamHi });
+  fillEllipsoid(buf, 0.52, 1.6, 1.12, 0.1, 0.07, 0.12, cream, "#");
+  fillDiscAt(buf, 0.48, 1.58, 1.24, 0.045, "#111111", "*", 7);
+
+  const tail = [
+    { x: 1.38, y: 1.08, z: 0.96, rx: 0.14, ry: 0.12, rz: 0.16, color: black, fill: "#" },
+    { x: 1.58, y: 1.18, z: 0.86, rx: 0.2, ry: 0.16, rz: 0.2, color: black, fill: "#" },
+    { x: 1.7, y: 0.92, z: 0.78, rx: 0.24, ry: 0.2, rz: 0.22, color: black, fill: "#" },
+    { x: 1.62, y: 0.62, z: 0.74, rx: 0.22, ry: 0.22, rz: 0.2, color: cream, fill: "O" },
+    { x: 1.4, y: 0.38, z: 0.82, rx: 0.16, ry: 0.16, rz: 0.14, color: cream, fill: "O" },
+  ];
+  for (const p of tail) {
+    fillEllipsoid(buf, p.x, p.y, p.z, p.rx, p.ry, p.rz, p.color, p.fill, {
+      bulge: 0.2,
+      highlight: p.color === black ? "#4a4a52" : creamHi,
+    });
+  }
+}
+
+function drawWolfLabels(buf) {
+  const tags = [
+    { text: "[hips]", point: { x: 1, y: 1.02, z: 1.62 }, color: "#f4ebe3" },
+    { text: "[tail]", point: { x: 1.72, y: 0.88, z: 0.58 }, color: "#d0d0d6" },
+    { text: "[thighs]", point: { x: 0.48, y: 0.22, z: 1.32 }, color: "#f4ebe3" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function writeTags(buf, tags) {
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function drawAbsol(buf) {
+  const white = "#f4f6fa";
+  const gloss = { highlight: "#ffffff", bulge: 0.38, uSeg: 28, vSeg: 20, gloss: 0.34, hot: 0.64 };
+  const navy = "#1a2744";
+  const pink = "#e89aa8";
+  fillEllipsoid(buf, 1.72, 1.78, 0.68, 0.18, 0.18, 0.08, "#e8eef8", "*");
+  drawBox(buf, 0.06, 0.3, 0.18, 1.42, 0.38, 0.68, "#07090e", "#");
+  drawBox(buf, 1.7, 1.94, 0.12, 1.22, 0.32, 0.62, "#07090e", "#");
+  fillEllipsoid(buf, 0.72, 0.26, 1.08, 0.32, 0.38, 0.3, white, "O", gloss);
+  fillEllipsoid(buf, 1.28, 0.26, 1.08, 0.32, 0.38, 0.3, white, "O", gloss);
+  fillDiscAt(buf, 0.68, 0.08, 1.16, 0.12, navy, "#", 8);
+  fillDiscAt(buf, 1.32, 0.08, 1.16, 0.12, navy, "#", 8);
+  fillEllipsoid(buf, 1, 0.88, 1.04, 0.52, 0.5, 0.4, white, "O", gloss);
+  fillEllipsoid(buf, 0.7, 0.62, 1.28, 0.52, 0.58, 0.48, white, "O", gloss);
+  fillEllipsoid(buf, 1.3, 0.62, 1.28, 0.52, 0.58, 0.48, white, "O", gloss);
+  fillDiscAt(buf, 0.7, 0.36, 1.52, 0.1, pink, "*", 8);
+  fillDiscAt(buf, 1.3, 0.36, 1.52, 0.1, pink, "*", 8);
+  fillEllipsoid(buf, 0.52, 0.72, 1.2, 0.18, 0.36, 0.16, white, "#", gloss);
+  fillEllipsoid(buf, 1.48, 0.72, 1.2, 0.18, 0.36, 0.16, white, "#", gloss);
+  fillEllipsoid(buf, 1, 1.28, 1.02, 0.46, 0.24, 0.32, white, "@", gloss);
+  fillEllipsoid(buf, 1.02, 1.48, 1.08, 0.18, 0.16, 0.16, navy, "#");
+  fillDiscAt(buf, 0.96, 1.5, 1.22, 0.035, "#e22b2b", "*", 6);
+  fillDiscAt(buf, 1.1, 1.5, 1.22, 0.035, "#e22b2b", "*", 6);
+  fillDiscAt(buf, 1.02, 1.44, 1.24, 0.03, "#111111", "*", 5);
+  fillDiscAt(buf, 1.02, 1.58, 1.08, 0.04, "#0c1428", "=", 6);
+  fillEllipsoid(buf, 1.28, 1.62, 1, 0.08, 0.22, 0.08, navy, "#");
+  fillEllipsoid(buf, 1.44, 1.78, 0.9, 0.1, 0.14, 0.08, navy, "#");
+  fillEllipsoid(buf, 1.42, 0.72, 0.82, 0.12, 0.1, 0.18, navy, "#");
+  fillEllipsoid(buf, 1.56, 0.52, 0.7, 0.1, 0.08, 0.14, navy, "#");
+}
+
+function drawAbsolLabels(buf) {
+  writeTags(buf, [
+    { text: "[horn]", point: { x: 1.48, y: 1.82, z: 1.02 }, color: "#7a8bb0" },
+    { text: "[mane]", point: { x: 1, y: 1.28, z: 1.28 }, color: "#f4f6fa" },
+    { text: "[moon]", point: { x: 1.72, y: 1.78, z: 0.82 }, color: "#e8eef8" },
+  ]);
+}
+
+function drawGold(buf) {
+  const pale = "#f3e4d6";
+  const gloss = { highlight: "#fff8f0", bulge: 0.42, uSeg: 28, vSeg: 20, gloss: 0.32, hot: 0.62 };
+  const black = "#141418";
+  const gold = "#e6c34a";
+  const tan = "#c4a06a";
+  fillEllipsoid(buf, 0.62, 0.82, 1.24, 0.78, 0.7, 0.68, pale, "O", gloss);
+  fillEllipsoid(buf, 1.38, 0.82, 1.24, 0.78, 0.7, 0.68, pale, "O", gloss);
+  fillEllipsoid(buf, 0.72, 0.3, 1.12, 0.4, 0.52, 0.38, pale, "O", gloss);
+  fillEllipsoid(buf, 1.28, 0.3, 1.12, 0.4, 0.52, 0.38, pale, "O", gloss);
+  fillEllipsoid(buf, 1, 1.28, 1.08, 0.38, 0.42, 0.28, pale, "O", { bulge: 0.22, highlight: "#fff8f0" });
+  fillDiscAt(buf, 1, 1.48, 1.04, 0.1, black, "=", 10);
+  fillEllipsoid(buf, 1.08, 1.62, 1.08, 0.16, 0.14, 0.14, pale, "O", gloss);
+  fillEllipsoid(buf, 1.18, 1.82, 1.04, 0.07, 0.12, 0.06, black, "#");
+  fillEllipsoid(buf, 1.18, 1.82, 1.08, 0.04, 0.08, 0.04, tan, "+");
+  fillEllipsoid(buf, 0.98, 1.82, 1.04, 0.07, 0.12, 0.06, black, "#");
+  fillEllipsoid(buf, 0.98, 1.82, 1.08, 0.04, 0.08, 0.04, tan, "+");
+  fillEllipsoid(buf, 1.06, 1.7, 1.02, 0.12, 0.1, 0.1, black, "#");
+  fillEllipsoid(buf, 1.02, 1.68, 1.14, 0.08, 0.08, 0.06, gold, "*");
+  const tail = [
+    { x: 0.48, y: 1.02, z: 0.88, rx: 0.22, ry: 0.18, rz: 0.22, color: black },
+    { x: 0.24, y: 0.84, z: 0.72, rx: 0.28, ry: 0.24, rz: 0.26, color: tan },
+    { x: 0.22, y: 0.48, z: 0.66, rx: 0.32, ry: 0.3, rz: 0.26, color: "#f0e6d4" },
+  ];
+  for (const p of tail) {
+    fillEllipsoid(buf, p.x, p.y, p.z, p.rx, p.ry, p.rz, p.color, p.color === black ? "#" : "O", {
+      bulge: 0.18,
+      highlight: p.color === black ? "#3a3a42" : "#fff8f0",
+    });
+  }
+}
+
+function drawGoldLabels(buf) {
+  writeTags(buf, [
+    { text: "[hips]", point: { x: 1, y: 0.95, z: 1.62 }, color: "#f3e4d6" },
+    { text: "[tail]", point: { x: 0.28, y: 0.7, z: 0.58 }, color: "#c4a06a" },
+    { text: "[ears]", point: { x: 1.18, y: 1.9, z: 1.16 }, color: "#e6c34a" },
+  ]);
+}
+
+function drawCheetah(buf) {
+  const tan = "#c48a4a";
+  const white = "#f6f6f4";
+  const black = "#161616";
+  const red = "#d32f2f";
+  const yellow = "#f5d000";
+  const gloss = { highlight: "#e0b070", bulge: 0.36, uSeg: 28, vSeg: 20, gloss: 0.34, hot: 0.64 };
+  drawBox(buf, 0.12, 1.88, 0.2, 1.9, 0.72, 0.86, yellow, "=");
+  drawBox(buf, 0.4, 1.7, 0.55, 1.55, 0.78, 0.88, white, "+");
+  fillEllipsoid(buf, 0.68, 0.78, 1.18, 0.62, 0.58, 0.52, tan, "O", gloss);
+  fillEllipsoid(buf, 1.32, 0.78, 1.18, 0.62, 0.58, 0.52, tan, "O", gloss);
+  fillEllipsoid(buf, 1, 0.88, 1.1, 0.48, 0.42, 0.34, tan, "O", gloss);
+  fillEllipsoid(buf, 0.72, 1.08, 1.32, 0.42, 0.36, 0.36, white, "O", { highlight: "#ffffff", bulge: 0.32 });
+  fillEllipsoid(buf, 1.28, 1.08, 1.32, 0.42, 0.36, 0.36, white, "O", { highlight: "#ffffff", bulge: 0.32 });
+  drawBox(buf, 0.62, 1.38, 0.88, 1.28, 1.02, 1.18, white, "=");
+  fillEllipsoid(buf, 0.48, 0.62, 1.12, 0.2, 0.38, 0.18, tan, "#", gloss);
+  fillEllipsoid(buf, 1.52, 0.62, 1.12, 0.2, 0.38, 0.18, tan, "#", gloss);
+  for (const [x, y] of [
+    [0.52, 0.78],
+    [0.58, 0.62],
+    [1.48, 0.74],
+    [1.42, 0.58],
+  ]) {
+    fillDiscAt(buf, x, y, 1.18, 0.03, "#5a3a18", "*", 5);
+  }
+  fillEllipsoid(buf, 1, 1.42, 1.08, 0.2, 0.18, 0.16, tan, "O");
+  fillDiscAt(buf, 0.94, 1.46, 1.22, 0.04, "#e6b800", "*", 6);
+  fillDiscAt(buf, 1.08, 1.46, 1.22, 0.04, "#e6b800", "*", 6);
+  fillDiscAt(buf, 1, 1.4, 1.24, 0.03, black, "*", 5);
+  fillEllipsoid(buf, 0.72, 1.48, 1.02, 0.16, 0.22, 0.12, black, "#");
+  fillEllipsoid(buf, 0.58, 1.1, 1.08, 0.1, 0.28, 0.1, black, "#");
+  drawBox(buf, 0.72, 1.28, 1.58, 1.78, 0.96, 1.22, red, "#");
+  writeOnMesh(buf, "BUC-EE'S", { x: 1, y: 1.68, z: 1.24 }, yellow);
+  fillEllipsoid(buf, 0.7, 1.7, 1.04, 0.08, 0.08, 0.06, tan, "+");
+  fillEllipsoid(buf, 1.3, 1.7, 1.04, 0.08, 0.08, 0.06, tan, "+");
+  fillDiscAt(buf, 1, 1.32, 1.16, 0.06, black, "=", 8);
+  fillEllipsoid(buf, 0.42, 0.32, 0.92, 0.16, 0.12, 0.18, tan, "O");
+  fillEllipsoid(buf, 0.28, 0.18, 0.82, 0.12, 0.1, 0.14, tan, "#");
+}
+
+function drawCheetahLabels(buf) {
+  writeTags(buf, [
+    { text: "[cap]", point: { x: 1, y: 1.82, z: 1.28 }, color: "#d32f2f" },
+    { text: "[spots]", point: { x: 0.48, y: 0.7, z: 1.28 }, color: "#c48a4a" },
+    { text: "[braid]", point: { x: 0.52, y: 1.12, z: 1.22 }, color: "#161616" },
+  ]);
+}
+
+function drawLucoa(buf) {
+  const skin = "#f3d2c2";
+  const gloss = { highlight: "#ffe8dc", bulge: 0.4, uSeg: 28, vSeg: 20, gloss: 0.32, hot: 0.62 };
+  const horn = "#d2b48c";
+  fillEllipsoid(buf, 0.62, 0.38, 1.16, 0.52, 0.48, 0.4, skin, "O", gloss);
+  fillEllipsoid(buf, 1.38, 0.38, 1.16, 0.52, 0.48, 0.4, skin, "O", gloss);
+  fillEllipsoid(buf, 0.64, 0.96, 1.32, 0.72, 0.62, 0.48, skin, "O", gloss);
+  fillEllipsoid(buf, 1.36, 0.96, 1.32, 0.72, 0.62, 0.48, skin, "O", gloss);
+  fillDiscAt(buf, 0.64, 0.9, 1.62, 0.1, "#e89aa8", "*", 8);
+  fillDiscAt(buf, 1.36, 0.9, 1.62, 0.1, "#e89aa8", "*", 8);
+  fillEllipsoid(buf, 1, 0.42, 1.12, 0.42, 0.42, 0.28, skin, "O", gloss);
+  fillEllipsoid(buf, 1, 1.48, 1.14, 0.24, 0.22, 0.2, skin, "O", gloss);
+  fillDiscAt(buf, 0.92, 1.5, 1.3, 0.045, "#2ecc71", "*", 6);
+  fillDiscAt(buf, 1.1, 1.5, 1.3, 0.045, "#e74c3c", "*", 6);
+  fillEllipsoid(buf, 0.78, 1.72, 1.04, 0.08, 0.2, 0.08, horn, "#");
+  fillEllipsoid(buf, 1.22, 1.72, 1.04, 0.08, 0.2, 0.08, horn, "#");
+  fillEllipsoid(buf, 1, 1.58, 0.96, 0.22, 0.16, 0.14, "#f6e58d", "@");
+  fillEllipsoid(buf, 1.28, 1.28, 0.88, 0.14, 0.28, 0.12, "#7bed9f", "#");
+  fillEllipsoid(buf, 1.42, 0.9, 0.82, 0.12, 0.28, 0.1, "#70a1ff", "#");
+  fillEllipsoid(buf, 1.48, 0.52, 0.78, 0.1, 0.2, 0.1, "#a55eea", "#");
+  fillDiscAt(buf, 0.58, 1.52, 1.32, 0.1, skin, "O", 8);
+  fillDiscAt(buf, 1.42, 1.52, 1.32, 0.1, skin, "O", 8);
+  for (const x of [0.5, 0.58, 0.66, 1.34, 1.42, 1.5]) {
+    drawAsciiLine(buf, { x, y: 1.52, z: 1.34 }, { x: x + (x < 1 ? -0.06 : 0.06), y: 1.38, z: 1.36 }, skin, 0.04);
+  }
+}
+
+function drawLucoaLabels(buf) {
+  writeTags(buf, [
+    { text: "[horns]", point: { x: 1, y: 1.9, z: 1.16 }, color: "#d2b48c" },
+    { text: "[hair]", point: { x: 1.46, y: 0.9, z: 0.7 }, color: "#70a1ff" },
+    { text: "[hands]", point: { x: 0.5, y: 1.52, z: 1.42 }, color: "#f3d2c2" },
+  ]);
+}
+
+function drawCrystal(buf) {
+  const tan = "#d8a07a";
+  const gloss = { highlight: "#f0c8a8", bulge: 0.38, uSeg: 28, vSeg: 20, gloss: 0.32, hot: 0.62 };
+  const blonde = "#f4d03f";
+  drawBox(buf, 0.12, 0.48, 0.55, 0.92, 0.7, 1.28, "#eef1f4", "=");
+  drawBox(buf, 1.38, 1.88, 0.18, 1.12, 0.72, 1.32, "#5dade2", "#");
+  drawBox(buf, 1.46, 1.8, 0.28, 1.02, 0.8, 1.24, "#85c1e9", "+");
+  fillEllipsoid(buf, 0.72, 0.72, 1.18, 0.58, 0.52, 0.48, tan, "O", gloss);
+  fillEllipsoid(buf, 1.32, 0.72, 1.18, 0.58, 0.52, 0.48, tan, "O", gloss);
+  fillEllipsoid(buf, 0.86, 0.36, 1.1, 0.32, 0.48, 0.3, tan, "O", gloss);
+  fillEllipsoid(buf, 1.28, 0.4, 1.1, 0.32, 0.44, 0.3, tan, "O", gloss);
+  fillEllipsoid(buf, 1, 1.16, 1.12, 0.36, 0.4, 0.28, tan, "O", gloss);
+  fillEllipsoid(buf, 0.74, 1.12, 1.28, 0.36, 0.32, 0.32, tan, "O", gloss);
+  fillEllipsoid(buf, 1.26, 1.12, 1.28, 0.36, 0.32, 0.32, tan, "O", gloss);
+  fillEllipsoid(buf, 1.02, 1.48, 1.1, 0.14, 0.14, 0.14, tan, "O", gloss);
+  fillDiscAt(buf, 0.98, 1.5, 1.22, 0.035, "#27ae60", "*", 6);
+  fillDiscAt(buf, 1.08, 1.5, 1.22, 0.035, "#27ae60", "*", 6);
+  fillEllipsoid(buf, 1.02, 1.62, 1.02, 0.18, 0.16, 0.14, blonde, "@");
+  fillEllipsoid(buf, 1.12, 1.2, 0.92, 0.12, 0.32, 0.1, blonde, "#");
+  fillEllipsoid(buf, 0.72, 0.18, 1.12, 0.08, 0.06, 0.12, "#111111", "#");
+  fillEllipsoid(buf, 1.32, 0.22, 1.12, 0.08, 0.06, 0.12, "#111111", "#");
+  drawAsciiLine(buf, { x: 0.72, y: 0.12, z: 1.12 }, { x: 0.68, y: 0.02, z: 1.18 }, "#d4af37", 0.05);
+  drawAsciiLine(buf, { x: 1.32, y: 0.16, z: 1.12 }, { x: 1.36, y: 0.04, z: 1.18 }, "#d4af37", 0.05);
+  fillEllipsoid(buf, 0.58, 0.82, 1.16, 0.1, 0.18, 0.1, tan, "#", gloss);
+}
+
+function drawCrystalLabels(buf) {
+  writeTags(buf, [
+    { text: "[crystal]", point: { x: 1.7, y: 0.7, z: 1.4 }, color: "#5dade2" },
+    { text: "[hair]", point: { x: 1.12, y: 1.7, z: 1.16 }, color: "#f4d03f" },
+    { text: "[heels]", point: { x: 0.7, y: 0.12, z: 1.28 }, color: "#d4af37" },
+  ]);
+}
+
+function drawMega(buf) {
+  const teal = "#3ec8c4";
+  const tealDark = "#249a96";
+  const tealHi = "#8ef0ea";
+  const white = "#f6faf8";
+  const black = "#141418";
+  const trim = "#2ad4c8";
+  const pink = "#ff6b9d";
+  const wing = "#7c5cbf";
+  const stone = "#8b7a62";
+  const stoneDark = "#5c5040";
+  const skin = "#e8b4a0";
+  const gloss = { highlight: tealHi, bulge: 0.44, uSeg: 28, vSeg: 20, gloss: 0.3, hot: 0.6 };
+  const fur = { ...gloss, highlight: "#fffdf8" };
+
+  drawBox(buf, 0.02, 1.98, 0.0, 0.14, 0.08, 1.92, stoneDark, "#");
+  drawBox(buf, 0.02, 1.98, 0.12, 1.98, 0.04, 0.42, stone, "=");
+  drawBox(buf, 0.02, 0.18, 0.12, 1.7, 0.4, 1.4, stoneDark, "#");
+  drawBox(buf, 1.82, 1.98, 0.12, 1.7, 0.4, 1.4, stoneDark, "#");
+
+  fillEllipsoid(buf, 0.72, 1.18, 0.72, 0.16, 0.22, 0.08, wing, "*", { highlight: "#c4a8f0", bulge: 0.12 });
+  fillEllipsoid(buf, 1.28, 1.18, 0.72, 0.16, 0.22, 0.08, wing, "*", { highlight: "#c4a8f0", bulge: 0.12 });
+
+  const tails = [
+    { x: 0.28, y: 1.42, z: 0.92, rx: 0.14, ry: 0.18, rz: 0.14 },
+    { x: 0.18, y: 1.08, z: 0.98, rx: 0.16, ry: 0.22, rz: 0.16 },
+    { x: 0.22, y: 0.68, z: 1.02, rx: 0.14, ry: 0.22, rz: 0.14 },
+    { x: 0.32, y: 0.32, z: 1.04, rx: 0.12, ry: 0.18, rz: 0.12 },
+    { x: 1.72, y: 1.42, z: 0.92, rx: 0.14, ry: 0.18, rz: 0.14 },
+    { x: 1.82, y: 1.08, z: 0.98, rx: 0.16, ry: 0.22, rz: 0.16 },
+    { x: 1.78, y: 0.68, z: 1.02, rx: 0.14, ry: 0.22, rz: 0.14 },
+    { x: 1.68, y: 0.32, z: 1.04, rx: 0.12, ry: 0.18, rz: 0.12 },
+  ];
+  for (const p of tails) {
+    fillEllipsoid(buf, p.x, p.y, p.z, p.rx, p.ry, p.rz, teal, "@", gloss);
+  }
+  fillEllipsoid(buf, 0.22, 1.52, 0.96, 0.08, 0.06, 0.06, black, "#");
+  fillEllipsoid(buf, 0.22, 1.52, 1.02, 0.05, 0.04, 0.04, pink, "+");
+  fillEllipsoid(buf, 1.78, 1.52, 0.96, 0.08, 0.06, 0.06, black, "#");
+  fillEllipsoid(buf, 1.78, 1.52, 1.02, 0.05, 0.04, 0.04, pink, "+");
+
+  fillEllipsoid(buf, 0.48, 0.34, 1.22, 0.48, 0.58, 0.42, teal, "O", gloss);
+  fillEllipsoid(buf, 1.52, 0.34, 1.22, 0.48, 0.58, 0.42, teal, "O", gloss);
+  fillEllipsoid(buf, 0.48, 0.22, 1.2, 0.42, 0.32, 0.36, black, "#", { bulge: 0.16, highlight: "#3a3a42" });
+  fillEllipsoid(buf, 1.52, 0.22, 1.2, 0.42, 0.32, 0.36, black, "#", { bulge: 0.16, highlight: "#3a3a42" });
+  fillEllipsoid(buf, 0.48, 0.48, 1.38, 0.4, 0.08, 0.34, trim, "=");
+  fillEllipsoid(buf, 1.52, 0.48, 1.38, 0.4, 0.08, 0.34, trim, "=");
+
+  fillEllipsoid(buf, 0.58, 0.78, 1.24, 0.82, 0.7, 0.68, teal, "O", gloss);
+  fillEllipsoid(buf, 1.42, 0.78, 1.24, 0.82, 0.7, 0.68, teal, "O", gloss);
+
+  fillEllipsoid(buf, 1, 1.08, 1.16, 0.42, 0.36, 0.32, teal, "#", gloss);
+  fillEllipsoid(buf, 0.58, 1.22, 1.38, 0.72, 0.62, 0.58, teal, "O", gloss);
+  fillEllipsoid(buf, 1.42, 1.22, 1.38, 0.72, 0.62, 0.58, teal, "O", gloss);
+  fillEllipsoid(buf, 0.6, 1.2, 1.52, 0.48, 0.42, 0.28, white, "O", fur);
+  fillEllipsoid(buf, 1.4, 1.2, 1.52, 0.48, 0.42, 0.28, white, "O", fur);
+
+  fillEllipsoid(buf, 1, 1.38, 1.42, 0.08, 0.28, 0.06, trim, "#");
+  fillEllipsoid(buf, 1, 1.48, 1.18, 0.16, 0.08, 0.12, black, "=");
+
+  fillEllipsoid(buf, 0.28, 1.28, 1.28, 0.16, 0.32, 0.16, teal, "#", gloss);
+  fillEllipsoid(buf, 1.72, 1.28, 1.28, 0.16, 0.32, 0.16, teal, "#", gloss);
+  fillEllipsoid(buf, 0.22, 1.18, 1.42, 0.14, 0.22, 0.14, black, "#");
+  fillEllipsoid(buf, 1.78, 1.18, 1.42, 0.14, 0.22, 0.14, black, "#");
+  writeOnMesh(buf, "01", { x: 0.22, y: 1.28, z: 1.52 }, "#e53935");
+
+  fillEllipsoid(buf, 1, 1.18, 1.62, 0.05, 0.09, 0.04, skin, "o", { highlight: "#f8d0bc", bulge: 0.08 });
+  fillDiscAt(buf, 1, 1.12, 1.66, 0.03, "#c48a70", "*", 5);
+
+  fillEllipsoid(buf, 1, 1.64, 1.12, 0.22, 0.22, 0.2, teal, "O", gloss);
+  fillEllipsoid(buf, 1, 1.62, 1.28, 0.12, 0.1, 0.1, white, "O", fur);
+  fillEllipsoid(buf, 0.82, 1.82, 1.12, 0.1, 0.16, 0.08, teal, "#", gloss);
+  fillEllipsoid(buf, 1.18, 1.82, 1.12, 0.1, 0.16, 0.08, teal, "#", gloss);
+  fillEllipsoid(buf, 0.82, 1.82, 1.16, 0.05, 0.12, 0.04, white, "+");
+  fillEllipsoid(buf, 1.18, 1.82, 1.16, 0.05, 0.12, 0.04, white, "+");
+  fillDiscAt(buf, 0.94, 1.66, 1.3, 0.035, "#1a6e6a", "*", 5);
+  fillDiscAt(buf, 1.08, 1.66, 1.3, 0.035, "#1a6e6a", "*", 5);
+  fillDiscAt(buf, 1, 1.6, 1.34, 0.03, "#111111", "*", 5);
+  fillEllipsoid(buf, 1, 1.72, 1.04, 0.2, 0.12, 0.12, tealDark, "@", gloss);
+}
+
+function drawMegaLabels(buf) {
+  writeTags(buf, [
+    { text: "[tails]", point: { x: 0.22, y: 0.72, z: 1.18 }, color: "#3ec8c4" },
+    { text: "[collar]", point: { x: 1, y: 1.52, z: 1.32 }, color: "#d0d0d6" },
+    { text: "[01]", point: { x: 0.22, y: 1.38, z: 1.58 }, color: "#e53935" },
+    { text: "[stone]", point: { x: 1.7, y: 1.7, z: 0.5 }, color: "#8b7a62" },
+  ]);
+}
+
+function drawFennec(buf) {
+  const tan = "#d4a06a";
+  const tanDark = "#b07840";
+  const cream = "#f6ead8";
+  const pink = "#e8a8a0";
+  const wood = "#8b5a2b";
+  const woodHi = "#c48a4a";
+  const ocean = "#3d8ec9";
+  const oceanHi = "#7ec8e8";
+  const sand = "#e8d4a8";
+  const sky = "#9ec8e8";
+  const sun = "#fff6c8";
+  const black = "#1a1a1e";
+  const gloss = { highlight: "#f0d0a0", bulge: 0.28, uSeg: 22, vSeg: 16, gloss: 0.36, hot: 0.66 };
+
+  fillDiscAt(buf, 1, 1.72, 0.42, 0.72, sky, "~", 14);
+  fillDiscAt(buf, 0.42, 1.78, 0.38, 0.16, sun, "*", 12);
+  drawBox(buf, 0.12, 0.72, 0.72, 1.28, 0.28, 0.55, "#6a7a6a", "#");
+  drawBox(buf, 1.18, 1.88, 0.62, 1.18, 0.26, 0.52, "#8a9a88", "=");
+  drawBox(buf, 0.04, 1.96, 0.42, 0.78, 0.48, 0.92, ocean, "~");
+  drawBox(buf, 0.08, 1.92, 0.52, 0.7, 0.62, 0.98, oceanHi, "~");
+  drawBox(buf, 0.02, 1.98, 0.02, 0.28, 0.55, 1.72, sand, ".");
+
+  drawBox(buf, 0.28, 1.72, 0.08, 0.22, 0.92, 1.02, wood, "#");
+  drawBox(buf, 0.28, 1.72, 0.08, 0.22, 1.32, 1.42, wood, "#");
+  drawBox(buf, 0.32, 1.68, 0.34, 0.42, 0.88, 1.46, woodHi, "=");
+  for (const x of [0.38, 0.58, 0.78, 0.98, 1.18, 1.38, 1.56]) {
+    drawBox(buf, x, x + 0.1, 0.42, 0.52, 0.86, 1.48, wood, "#");
+  }
+  drawBox(buf, 1.52, 1.78, 0.48, 0.78, 0.9, 1.44, woodHi, "=");
+
+  fillEllipsoid(buf, 0.62, 0.62, 1.18, 0.32, 0.22, 0.26, tan, "O", gloss);
+  fillEllipsoid(buf, 0.92, 0.68, 1.2, 0.36, 0.2, 0.24, tan, "O", gloss);
+  fillEllipsoid(buf, 1.18, 0.74, 1.22, 0.28, 0.2, 0.22, tan, "O", gloss);
+  fillEllipsoid(buf, 0.92, 0.72, 1.34, 0.22, 0.14, 0.12, cream, "+", { highlight: "#fff8ee", bulge: 0.16 });
+  fillEllipsoid(buf, 0.7, 0.7, 1.36, 0.12, 0.1, 0.1, black, "#");
+  fillEllipsoid(buf, 1.08, 0.74, 1.36, 0.12, 0.08, 0.08, black, "#");
+
+  fillEllipsoid(buf, 0.42, 0.52, 1.28, 0.2, 0.16, 0.16, tan, "O", gloss);
+  fillEllipsoid(buf, 0.28, 0.42, 1.38, 0.16, 0.14, 0.14, tan, "#", gloss);
+  fillEllipsoid(buf, 0.48, 0.48, 1.08, 0.16, 0.14, 0.14, tan, "O", gloss);
+  fillEllipsoid(buf, 0.38, 0.38, 0.98, 0.12, 0.1, 0.12, tan, "#");
+
+  fillEllipsoid(buf, 1.22, 0.82, 1.08, 0.1, 0.16, 0.1, tan, "#", gloss);
+  fillEllipsoid(buf, 0.72, 0.78, 1.42, 0.1, 0.14, 0.1, tan, "#", gloss);
+  fillDiscAt(buf, 0.68, 0.72, 1.52, 0.05, cream, "o", 6);
+
+  fillEllipsoid(buf, 1.38, 0.88, 1.22, 0.18, 0.16, 0.16, tan, "O", gloss);
+  fillEllipsoid(buf, 1.4, 0.86, 1.36, 0.1, 0.08, 0.1, cream, "o", { highlight: "#fff8ee" });
+  fillDiscAt(buf, 1.4, 0.84, 1.46, 0.035, "#1a120e", "*", 5);
+  fillDiscAt(buf, 1.34, 0.92, 1.38, 0.03, "#5a3018", "*", 5);
+  fillDiscAt(buf, 1.46, 0.92, 1.38, 0.03, "#5a3018", "*", 5);
+  fillEllipsoid(buf, 1.38, 1.02, 1.22, 0.12, 0.04, 0.08, black, "=");
+
+  fillEllipsoid(buf, 1.22, 1.42, 1.18, 0.12, 0.38, 0.08, tan, "#", gloss);
+  fillEllipsoid(buf, 1.52, 1.46, 1.18, 0.12, 0.4, 0.08, tan, "#", gloss);
+  fillEllipsoid(buf, 1.22, 1.44, 1.24, 0.07, 0.3, 0.04, pink, "+");
+  fillEllipsoid(buf, 1.52, 1.48, 1.24, 0.07, 0.32, 0.04, pink, "+");
+  fillEllipsoid(buf, 1.22, 1.68, 1.18, 0.1, 0.08, 0.06, cream, "o");
+  fillEllipsoid(buf, 1.52, 1.74, 1.18, 0.1, 0.08, 0.06, cream, "o");
+
+  const tail = [
+    { x: 0.48, y: 0.68, z: 0.98, rx: 0.16, ry: 0.14, rz: 0.16, color: tan },
+    { x: 0.28, y: 0.58, z: 0.86, rx: 0.2, ry: 0.16, rz: 0.18, color: tanDark },
+    { x: 0.18, y: 0.42, z: 0.78, rx: 0.16, ry: 0.14, rz: 0.16, color: cream },
+  ];
+  for (const p of tail) {
+    fillEllipsoid(buf, p.x, p.y, p.z, p.rx, p.ry, p.rz, p.color, p.color === cream ? "O" : "#", {
+      bulge: 0.22,
+      highlight: p.color === cream ? "#fff8ee" : "#f0d0a0",
+    });
+  }
+}
+
+function drawFennecLabels(buf) {
+  writeTags(buf, [
+    { text: "[ears]", point: { x: 1.38, y: 1.82, z: 1.28 }, color: "#e8a8a0" },
+    { text: "[tail]", point: { x: 0.18, y: 0.48, z: 0.68 }, color: "#f6ead8" },
+    { text: "[chair]", point: { x: 1.0, y: 0.28, z: 1.52 }, color: "#c48a4a" },
+    { text: "[beach]", point: { x: 1.55, y: 0.62, z: 0.72 }, color: "#7ec8e8" },
+  ]);
+}
+
+function drawMoth(buf) {
+  const mint = "#b8e0c0";
+  const mintHair = "#7dcc9a";
+  const mintHi = "#e8ffe8";
+  const pale = "#f3d2c4";
+  const paleHi = "#ffe8dc";
+  const pinkHair = "#e8a0c0";
+  const purple = "#8b4a8a";
+  const fur = "#f4f6f2";
+  const glossMint = { highlight: mintHi, bulge: 0.36, uSeg: 24, vSeg: 18, gloss: 0.32, hot: 0.62 };
+  const glossPale = { highlight: paleHi, bulge: 0.36, uSeg: 24, vSeg: 18, gloss: 0.32, hot: 0.62 };
+
+  drawBox(buf, 0.04, 1.96, 0.08, 1.92, 0.08, 0.42, "#1a1210", "#");
+  drawBox(buf, 0.12, 0.28, 0.72, 1.22, 0.28, 0.48, "#3d6b3a", "=");
+  drawBox(buf, 0.32, 0.48, 0.82, 1.38, 0.26, 0.46, "#8a4a18", "+");
+  drawBox(buf, 1.52, 1.68, 0.78, 1.32, 0.26, 0.46, "#c45a2a", "+");
+  drawBox(buf, 1.72, 1.88, 0.68, 1.18, 0.28, 0.48, "#2a4a6a", "=");
+  drawBox(buf, 0.08, 1.92, 0.08, 0.28, 0.4, 0.7, "#2a2018", "#");
+
+  fillEllipsoid(buf, 0.52, 0.72, 1.28, 0.62, 0.55, 0.48, mint, "O", glossMint);
+  fillEllipsoid(buf, 1.48, 0.72, 1.28, 0.62, 0.55, 0.48, pale, "O", glossPale);
+  fillEllipsoid(buf, 0.72, 0.68, 1.48, 0.42, 0.38, 0.28, mint, "O", glossMint);
+  fillEllipsoid(buf, 1.28, 0.68, 1.48, 0.42, 0.38, 0.28, pale, "O", glossPale);
+
+  fillEllipsoid(buf, 0.7, 1.08, 1.18, 0.22, 0.18, 0.2, fur, "@", { highlight: "#ffffff", bulge: 0.22 });
+  fillEllipsoid(buf, 0.55, 1.18, 1.22, 0.18, 0.14, 0.16, fur, "O", { highlight: "#ffffff", bulge: 0.18 });
+  fillEllipsoid(buf, 1.3, 1.08, 1.16, 0.16, 0.12, 0.14, pinkHair, "#");
+
+  fillEllipsoid(buf, 0.62, 1.42, 1.22, 0.22, 0.22, 0.2, mint, "O", glossMint);
+  fillEllipsoid(buf, 1.38, 1.42, 1.22, 0.22, 0.22, 0.2, pale, "O", glossPale);
+  fillEllipsoid(buf, 0.58, 1.52, 1.08, 0.2, 0.18, 0.16, mintHair, "@");
+  fillEllipsoid(buf, 0.42, 1.28, 1.02, 0.16, 0.22, 0.12, mintHair, "#");
+  fillEllipsoid(buf, 0.38, 0.92, 0.98, 0.14, 0.22, 0.1, mintHair, "#");
+  fillEllipsoid(buf, 1.42, 1.54, 1.08, 0.2, 0.2, 0.16, pinkHair, "@");
+  fillEllipsoid(buf, 1.58, 1.32, 1.02, 0.16, 0.24, 0.12, pinkHair, "#");
+  fillEllipsoid(buf, 1.62, 0.96, 0.98, 0.14, 0.22, 0.1, purple, "#");
+
+  fillEllipsoid(buf, 0.52, 1.78, 1.18, 0.04, 0.22, 0.04, "#2a2a28", "#");
+  fillEllipsoid(buf, 0.7, 1.82, 1.16, 0.04, 0.24, 0.04, "#2a2a28", "#");
+  fillEllipsoid(buf, 1.28, 1.8, 1.16, 0.035, 0.22, 0.035, "#d47898", "#");
+  fillEllipsoid(buf, 1.46, 1.84, 1.14, 0.035, 0.24, 0.035, "#d47898", "#");
+
+  fillDiscAt(buf, 0.56, 1.44, 1.4, 0.045, "#7dcc9a", "*", 6);
+  fillDiscAt(buf, 0.68, 1.44, 1.4, 0.045, "#7dcc9a", "*", 6);
+  fillDiscAt(buf, 1.3, 1.44, 1.4, 0.045, "#e6c84a", "*", 6);
+  fillDiscAt(buf, 1.44, 1.44, 1.4, 0.045, "#e6c84a", "*", 6);
+  fillDiscAt(buf, 0.62, 1.36, 1.42, 0.03, "#111111", "*", 5);
+  fillDiscAt(buf, 1.38, 1.36, 1.42, 0.03, "#111111", "*", 5);
+  fillEllipsoid(buf, 0.78, 1.32, 1.38, 0.06, 0.04, 0.08, mintHair, "+");
+  fillEllipsoid(buf, 1.22, 1.32, 1.38, 0.06, 0.04, 0.08, pale, "+");
+}
+
+function drawMothLabels(buf) {
+  writeTags(buf, [
+    { text: "[antennae]", point: { x: 0.62, y: 1.9, z: 1.28 }, color: "#7dcc9a" },
+    { text: "[fur]", point: { x: 0.55, y: 1.18, z: 1.42 }, color: "#f4f6f2" },
+    { text: "[hair]", point: { x: 1.62, y: 1.2, z: 1.08 }, color: "#e8a0c0" },
+    { text: "[bar]", point: { x: 1.72, y: 1.7, z: 0.5 }, color: "#8a4a18" },
+  ]);
+}
+
+function drawLoaf(buf) {
+  const crust = "#c47a32";
+  const crustHi = "#e8b86d";
+  const crumb = "#e8c48a";
+  const score = "#6b3319";
+  const skin = "#f3d8d0";
+  const blush = "#e8a0a8";
+  const hair = "#2a1c16";
+  const mauve = "#b8a4b0";
+  const glossBread = { highlight: crustHi, bulge: 0.18, uSeg: 24, vSeg: 16, gloss: 0.34, hot: 0.64 };
+  const glossSkin = { highlight: "#fff0ea", bulge: 0.16, uSeg: 20, vSeg: 14, gloss: 0.4, hot: 0.7 };
+
+  drawBox(buf, 0.18, 1.82, 0.22, 1.78, 0.12, 0.48, mauve, "=");
+  fillDiscAt(buf, 1, 0.18, 1.05, 0.7, "#d8c8c4", ".", 12);
+
+  fillEllipsoid(buf, 1, 0.48, 1.12, 0.92, 0.22, 0.28, crust, "O", glossBread);
+  fillEllipsoid(buf, 0.28, 0.5, 1.1, 0.22, 0.16, 0.2, crust, "#", glossBread);
+  fillEllipsoid(buf, 1.72, 0.5, 1.1, 0.22, 0.16, 0.2, crust, "#", glossBread);
+  fillEllipsoid(buf, 1, 0.58, 1.18, 0.78, 0.1, 0.18, crumb, "=", { highlight: "#f4d8a8", bulge: 0.08 });
+
+  const scores = [
+    [0.42, 0.66],
+    [0.68, 0.68],
+    [0.94, 0.7],
+    [1.2, 0.68],
+    [1.46, 0.66],
+  ];
+  for (const [x, y] of scores) {
+    drawAsciiLine(buf, { x: x - 0.08, y, z: 1.32 }, { x: x + 0.1, y: y - 0.04, z: 1.34 }, score, 0.05);
+  }
+
+  fillEllipsoid(buf, 0.88, 0.82, 1.22, 0.16, 0.12, 0.14, skin, "O", glossSkin);
+  fillEllipsoid(buf, 1.12, 0.8, 1.28, 0.2, 0.1, 0.12, skin, "O", glossSkin);
+  fillEllipsoid(buf, 1.32, 0.72, 1.22, 0.16, 0.08, 0.1, skin, "#", glossSkin);
+  fillEllipsoid(buf, 0.72, 0.72, 1.08, 0.12, 0.1, 0.1, skin, "O", glossSkin);
+  fillEllipsoid(buf, 0.58, 0.62, 1.0, 0.1, 0.08, 0.08, skin, "#");
+
+  fillEllipsoid(buf, 0.98, 1.02, 1.16, 0.14, 0.2, 0.12, skin, "O", glossSkin);
+  fillEllipsoid(buf, 1.18, 0.92, 1.08, 0.08, 0.14, 0.08, skin, "#", glossSkin);
+  fillEllipsoid(buf, 0.78, 0.92, 1.28, 0.08, 0.12, 0.08, skin, "#", glossSkin);
+  fillDiscAt(buf, 0.76, 0.82, 1.36, 0.045, skin, "o", 6);
+  fillDiscAt(buf, 1.2, 0.78, 1.02, 0.045, skin, "o", 6);
+
+  fillEllipsoid(buf, 1.22, 1.28, 1.12, 0.12, 0.12, 0.12, skin, "O", glossSkin);
+  fillDiscAt(buf, 1.22, 1.26, 1.22, 0.035, blush, "*", 5);
+  fillDiscAt(buf, 1.18, 1.3, 1.22, 0.025, "#111111", "*", 4);
+  fillDiscAt(buf, 1.26, 1.3, 1.22, 0.025, "#111111", "*", 4);
+  fillEllipsoid(buf, 1.22, 1.38, 1.08, 0.14, 0.1, 0.12, hair, "#");
+  fillEllipsoid(buf, 1.28, 1.52, 1.08, 0.03, 0.1, 0.03, hair, "#");
+  fillEllipsoid(buf, 1.32, 1.32, 1.02, 0.08, 0.1, 0.06, hair, "#");
+
+  for (const [x, y, z] of [
+    [0.92, 1.0, 1.26],
+    [1.04, 0.96, 1.24],
+    [1.16, 1.22, 1.2],
+    [0.84, 0.78, 1.3],
+    [1.28, 0.74, 1.18],
+  ]) {
+    fillDiscAt(buf, x, y, z, 0.018, "#5a3a28", "*", 4);
+  }
+}
+
+function drawLoafLabels(buf) {
+  writeTags(buf, [
+    { text: "[loaf]", point: { x: 0.28, y: 0.55, z: 1.32 }, color: "#c47a32" },
+    { text: "[crust]", point: { x: 1.7, y: 0.62, z: 1.28 }, color: "#e8b86d" },
+    { text: "[score]", point: { x: 1.0, y: 0.78, z: 1.42 }, color: "#6b3319" },
+    { text: "[hair]", point: { x: 1.28, y: 1.58, z: 1.2 }, color: "#2a1c16" },
+  ]);
+}
+
+function drawStorm(buf) {
+  const cloud = "#4a5568";
+  const cloudHi = "#a0aec0";
+  const slate = "#718096";
+  const pale = "#e2e8f0";
+  const bolt = "#f6e05e";
+  const boltHi = "#fffde7";
+  const electric = "#63b3ed";
+  const gold = "#d69e2e";
+  const navy = "#1a202c";
+  const gloss = { highlight: pale, bulge: 0.22, uSeg: 22, vSeg: 16, gloss: 0.36, hot: 0.66 };
+  const cloudGloss = { highlight: cloudHi, bulge: 0.28, uSeg: 20, vSeg: 14, gloss: 0.4, hot: 0.7 };
+
+  drawBox(buf, 0.04, 1.96, 0.04, 1.96, 0.06, 0.38, navy, "#");
+  fillEllipsoid(buf, 0.42, 0.42, 0.92, 0.42, 0.28, 0.32, cloud, "O", cloudGloss);
+  fillEllipsoid(buf, 1.0, 0.32, 1.0, 0.55, 0.26, 0.36, cloud, "#", cloudGloss);
+  fillEllipsoid(buf, 1.58, 0.4, 0.94, 0.4, 0.26, 0.3, cloud, "O", cloudGloss);
+  fillEllipsoid(buf, 0.72, 0.58, 1.18, 0.32, 0.2, 0.24, cloudHi, "o", cloudGloss);
+  fillEllipsoid(buf, 1.28, 0.55, 1.16, 0.3, 0.18, 0.22, cloudHi, "o", cloudGloss);
+
+  for (const x of [0.28, 0.52, 0.78, 1.08, 1.38, 1.64]) {
+    drawAsciiLine(buf, { x, y: 0.48, z: 1.22 }, { x: x + 0.04, y: 0.08, z: 1.28 }, electric, 0.03);
+  }
+
+  drawAsciiLine(buf, { x: 1.62, y: 1.72, z: 0.72 }, { x: 1.52, y: 1.38, z: 0.82 }, bolt, 0.06);
+  drawAsciiLine(buf, { x: 1.52, y: 1.38, z: 0.82 }, { x: 1.68, y: 1.12, z: 0.78 }, boltHi, 0.05);
+  drawAsciiLine(buf, { x: 1.68, y: 1.12, z: 0.78 }, { x: 1.48, y: 0.72, z: 0.88 }, bolt, 0.06);
+  drawAsciiLine(buf, { x: 0.22, y: 1.58, z: 0.7 }, { x: 0.38, y: 1.18, z: 0.78 }, bolt, 0.05);
+  drawAsciiLine(buf, { x: 0.38, y: 1.18, z: 0.78 }, { x: 0.18, y: 0.82, z: 0.84 }, boltHi, 0.05);
+
+  fillEllipsoid(buf, 1, 0.92, 1.12, 0.28, 0.32, 0.22, slate, "O", gloss);
+  fillEllipsoid(buf, 1, 1.22, 1.14, 0.22, 0.22, 0.18, slate, "#", gloss);
+  fillEllipsoid(buf, 0.78, 1.08, 1.22, 0.1, 0.18, 0.1, slate, "#", gloss);
+  fillEllipsoid(buf, 1.28, 1.18, 1.2, 0.1, 0.2, 0.1, slate, "#", gloss);
+  fillEllipsoid(buf, 1.48, 1.42, 1.24, 0.08, 0.12, 0.08, slate, "O", gloss);
+  fillEllipsoid(buf, 1.52, 1.52, 1.32, 0.1, 0.16, 0.06, bolt, "*", { highlight: boltHi, bulge: 0.12 });
+  fillEllipsoid(buf, 0.62, 0.88, 1.18, 0.08, 0.16, 0.08, slate, "#", gloss);
+  fillEllipsoid(buf, 1.32, 0.78, 1.16, 0.08, 0.14, 0.08, slate, "#", gloss);
+
+  fillEllipsoid(buf, 1, 1.5, 1.16, 0.16, 0.16, 0.14, pale, "O", gloss);
+  fillDiscAt(buf, 0.94, 1.52, 1.28, 0.035, electric, "*", 5);
+  fillDiscAt(buf, 1.08, 1.52, 1.28, 0.035, electric, "*", 5);
+  fillDiscAt(buf, 1, 1.46, 1.3, 0.025, navy, "*", 4);
+  fillEllipsoid(buf, 1, 1.62, 1.1, 0.2, 0.12, 0.14, pale, "@", gloss);
+  fillEllipsoid(buf, 0.72, 1.48, 1.02, 0.18, 0.16, 0.12, pale, "#", gloss);
+  fillEllipsoid(buf, 1.28, 1.42, 1.0, 0.16, 0.18, 0.12, pale, "#", gloss);
+  fillEllipsoid(buf, 1, 1.74, 1.12, 0.14, 0.08, 0.1, gold, "=");
+  fillEllipsoid(buf, 0.88, 1.82, 1.1, 0.04, 0.1, 0.04, gold, "#");
+  fillEllipsoid(buf, 1.12, 1.82, 1.1, 0.04, 0.1, 0.04, gold, "#");
+  fillDiscAt(buf, 1, 1.78, 1.22, 0.04, boltHi, "*", 6);
+
+  fillEllipsoid(buf, 0.7, 1.18, 0.92, 0.2, 0.28, 0.1, "#2d3748", "#");
+  fillEllipsoid(buf, 1.32, 1.12, 0.9, 0.18, 0.26, 0.1, "#2d3748", "#");
+}
+
+function drawStormLabels(buf) {
+  writeTags(buf, [
+    { text: "[crown]", point: { x: 1, y: 1.88, z: 1.22 }, color: "#d69e2e" },
+    { text: "[bolt]", point: { x: 1.55, y: 1.48, z: 1.38 }, color: "#f6e05e" },
+    { text: "[cloud]", point: { x: 0.4, y: 0.42, z: 1.18 }, color: "#a0aec0" },
+    { text: "[storm]", point: { x: 1.68, y: 1.12, z: 0.7 }, color: "#63b3ed" },
+  ]);
+}
+
+const FLAT_X0 = 0.08;
+const FLAT_X1 = 1.92;
+const FLAT_Y0 = 0.04;
+const FLAT_Y1 = 1.96;
+const FLAT_Z = 1;
+const FLAT_GROOVE = 0.055;
+
+const FLAT_SOLIDS = [
+  { u: 0.84, v: 0.86, ru: 0.11, rv: 0.11, rz: 0.08, cz: 1.02, color: "#f4f7ff", hi: "#ffffff", fill: "*", groove: false },
+  { u: 0.84, v: 0.86, ru: 0.18, rv: 0.18, rz: 0.04, cz: 1.0, color: "#9bb4d8", hi: "#c5d4ee", fill: "o", groove: false },
+  { u: 0.52, v: 0.88, ru: 0.028, rv: 0.022, rz: 0.04, cz: 1.16, color: "#5ad2ff", hi: "#e8f7ff", fill: "*", groove: false },
+  { u: 0.5, v: 0.2, ru: 0.045, rv: 0.04, rz: 0.05, cz: 1.12, color: "#3ec6ff", hi: "#e8f7ff", fill: "*", groove: false },
+  { u: 0.42, v: 0.46, ru: 0.04, rv: 0.025, rz: 0.04, cz: 1.14, color: "#d32f2f", hi: "#ff6b6b", fill: "A", groove: false },
+  { u: 0.46, v: 0.44, ru: 0.035, rv: 0.022, rz: 0.04, cz: 1.14, color: "#d32f2f", hi: "#ff6b6b", fill: "A", groove: false },
+  { u: 0.48, v: 0.84, ru: 0.07, rv: 0.045, rz: 0.1, cz: 1.08, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
+  { u: 0.57, v: 0.86, ru: 0.1, rv: 0.11, rz: 0.12, cz: 1.08, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
+  { u: 0.62, v: 0.96, ru: 0.04, rv: 0.06, rz: 0.06, cz: 1.06, color: "#7a1218", hi: "#c62828", fill: "#", groove: false },
+  { u: 0.7, v: 0.56, ru: 0.3, rv: 0.38, rz: 0.32, cz: 1.14, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
+  { u: 0.66, v: 0.46, ru: 0.22, rv: 0.18, rz: 0.2, cz: 1.12, color: "#2a2a32", hi: "#8c8c98", fill: "o", groove: true },
+  { u: 0.56, v: 0.47, ru: 0.26, rv: 0.12, rz: 0.14, cz: 1.18, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
+  { u: 0.32, v: 0.34, ru: 0.38, rv: 0.46, rz: 0.44, cz: 1.12, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
+  { u: 0.66, v: 0.32, ru: 0.4, rv: 0.48, rz: 0.46, cz: 1.12, color: "#2a2a32", hi: "#9a9aa6", fill: "O", groove: true },
+  { u: 0.36, v: 0.1, ru: 0.28, rv: 0.28, rz: 0.26, cz: 1.08, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
+  { u: 0.62, v: 0.08, ru: 0.3, rv: 0.28, rz: 0.26, cz: 1.08, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
+  { u: 0.48, v: 0.54, ru: 0.09, rv: 0.15, rz: 0.12, cz: 1.08, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
+  { u: 0.46, v: 0.66, ru: 0.11, rv: 0.13, rz: 0.12, cz: 1.08, color: "#2a2a32", hi: "#8c8c98", fill: "O", groove: true },
+  { u: 0.44, v: 0.78, ru: 0.16, rv: 0.2, rz: 0.1, cz: 1.02, color: "#c62828", hi: "#ff6b6b", fill: "#", groove: false },
+  { u: 0.38, v: 0.58, ru: 0.15, rv: 0.24, rz: 0.1, cz: 1.02, color: "#c62828", hi: "#e53935", fill: "#", groove: false },
+  { u: 0.4, v: 0.38, ru: 0.14, rv: 0.2, rz: 0.09, cz: 1.02, color: "#7a1218", hi: "#c62828", fill: "#", groove: false },
+  { u: 0.46, v: 0.24, ru: 0.12, rv: 0.14, rz: 0.08, cz: 1.02, color: "#0c0c10", hi: "#2a2a32", fill: "#", groove: false },
+  { u: 0.54, v: 0.7, ru: 0.1, rv: 0.22, rz: 0.09, cz: 1.02, color: "#c62828", hi: "#e53935", fill: "#", groove: false },
+];
+
+function faceDefaultView(point) {
+  const a = 0.9;
+  const cx = point.x - 1;
+  const cz = point.z - 1;
+  return {
+    x: 1 + cx * Math.cos(a) - cz * Math.sin(a),
+    y: point.y,
+    z: 1 + cx * Math.sin(a) + cz * Math.cos(a),
+  };
+}
+
+function flatWorld(u, v, z) {
+  return faceDefaultView({
+    x: FLAT_X0 + (FLAT_X1 - FLAT_X0) * u,
+    y: FLAT_Y0 + (FLAT_Y1 - FLAT_Y0) * v,
+    z,
+  });
+}
+
+function sampleFlatSky(u, v) {
+  const forest = { color: "#05070c", fill: "#" };
+  if (v < 0.07) return forest;
+  if (u < 0.2 && v < 0.58 && Math.abs(u - 0.08) < 0.12 * (0.62 - v)) return forest;
+  if (u > 0.86 && v < 0.5 && Math.abs(u - 0.94) < 0.1 * (0.55 - v)) return forest;
+  const dL = ((u - 0.1) / 0.08) ** 2 + ((v - 0.22) / 0.2) ** 2;
+  const dR = ((u - 0.92) / 0.07) ** 2 + ((v - 0.18) / 0.16) ** 2;
+  if (dL <= 1 || dR <= 1) return forest;
+  return { color: "#0a1428", fill: "." };
+}
+
+function ellipsoidFrontUV(u, v, solid) {
+  const dx = (u - solid.u) / solid.ru;
+  const dy = (v - solid.v) / solid.rv;
+  const dxy = dx * dx + dy * dy;
+  if (dxy >= 1) return null;
+  const nz = Math.sqrt(1 - dxy);
+  return { z: solid.cz + solid.rz * nz, dxy, nz, dx, dy, solid };
+}
+
+function projectFlatMinDepth(u, v) {
+  let win = null;
+  let second = null;
+  for (const solid of FLAT_SOLIDS) {
+    const hit = ellipsoidFrontUV(u, v, solid);
+    if (!hit) continue;
+    if (!win || hit.z > win.z) {
+      second = win;
+      win = hit;
+    } else if (!second || hit.z > second.z) {
+      second = hit;
+    }
+  }
+  if (!win) return null;
+  win.groove = Boolean(
+    second &&
+      win.solid.groove &&
+      second.solid.groove &&
+      win.z - second.z < FLAT_GROOVE,
+  );
+  return win;
+}
+
+function shadeFlatProjection(hit) {
+  if (hit.groove) return { color: "#101018", fill: "=" };
+  const solid = hit.solid;
+  const nx = hit.dx / solid.ru;
+  const ny = hit.dy / solid.rv;
+  const nz = hit.nz / Math.max(0.001, solid.rz);
+  const len = Math.hypot(nx, ny, nz) || 1;
+  const shine = (nx * 0.32 + ny * 0.52 + nz * 0.8) / len;
+  if (shine > 0.64) return { color: solid.hi, fill: "*" };
+  if (shine > 0.3) return { color: solid.color, fill: "o" };
+  return { color: solid.color, fill: solid.fill };
+}
+
+function flatCorner(u, v) {
+  const hit = projectFlatMinDepth(u, v);
+  return flatWorld(u, v, hit ? hit.z : FLAT_Z);
+}
+
+function drawFlat(buf) {
+  const nx = 72;
+  const ny = 90;
+  for (let i = 0; i < nx; i += 1) {
+    for (let j = 0; j < ny; j += 1) {
+      const u0 = i / nx;
+      const u1 = (i + 1) / nx;
+      const v0 = j / ny;
+      const v1 = (j + 1) / ny;
+      const uc = (u0 + u1) / 2;
+      const vc = (v0 + v1) / 2;
+      const hit = projectFlatMinDepth(uc, vc);
+      const paint = hit ? shadeFlatProjection(hit) : sampleFlatSky(uc, vc);
+      fillQuad(buf, [flatCorner(u0, v0), flatCorner(u1, v0), flatCorner(u1, v1), flatCorner(u0, v1)], paint.color, paint.fill);
+    }
+  }
+}
+
+function drawFlatLabels(buf) {
+  const tags = [
+    { text: "[hips]", point: flatWorld(0.58, 0.34, 1.34), color: "#9a9aa6" },
+    { text: "[mane]", point: flatWorld(0.36, 0.68, 1.16), color: "#c62828" },
+    { text: "[moon]", point: flatWorld(0.84, 0.86, 1.2), color: "#f4f7ff" },
+  ];
+  for (const tag of tags) {
+    const cell = toCell(tag.point);
+    writeText(buf, tag.text, cell.x, cell.y, tag.color, 7);
+  }
+}
+
+function drawTicksAndAxes(buf) {
   const axes = [
     { name: settings.axes[0], points: [{ x: 0, y: 0, z: 0 }, { x: 2, y: 0, z: 0 }], key: "x" },
     { name: settings.axes[1], points: [{ x: 0, y: 0, z: 0 }, { x: 0, y: 2, z: 0 }], key: "y" },
     { name: settings.axes[2], points: [{ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 2 }], key: "z" },
   ];
 
-  ctx.font = "700 13px Inter, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = "rgba(238, 244, 255, 0.82)";
-
   for (const axis of axes) {
-    ctx.strokeStyle = "rgba(125, 211, 252, 0.52)";
-    ctx.lineWidth = 1.3;
-    drawLine(axis.points[0], axis.points[1]);
-
+    drawAsciiLine(buf, axis.points[0], axis.points[1], "#ffc857", 0.09);
     for (const tick of [0, 1, 2]) {
       const point = { x: 0, y: 0, z: 0 };
       point[axis.key] = tick;
-      const projected = project(point);
-      drawText(String(tick), projected.x, projected.y + 18, "rgba(238, 244, 255, 0.74)");
+      const cell = toCell(point);
+      writeText(buf, String(tick), cell.x, cell.y + 1.2, "#c5d0dc", 9);
     }
 
     const labelPoint = { ...axis.points[1] };
-    labelPoint[axis.key] += 0.22;
-    const projected = project(labelPoint);
-    drawText(axis.name, projected.x, projected.y, "rgba(125, 211, 252, 0.96)");
+    labelPoint[axis.key] += 0.28;
+    const projected = toCell(labelPoint);
+    writeText(buf, axis.name, projected.x, projected.y, "#ffc857", 10);
   }
 }
 
-function drawRegionLabels() {
-  regionCombos.forEach((combo, index) => {
-    const point = {
-      x: combo[0] === "low" ? 0.5 : 1.5,
-      y: combo[1] === "low" ? 0.5 : 1.5,
-      z: combo[2] === "low" ? 0.5 : 1.5,
-    };
-    const projected = projectFlat(point);
-    drawLabel(settings.regions[regionKey(combo)], projected.x, projected.y, regionColors[index]);
-  });
-}
-
-function drawNotes() {
-  const ordered = [...notes].sort((a, b) => project(a.point).z - project(b.point).z);
+function drawNotes(buf) {
+  const ordered = [...notes].sort((a, b) => toCell(a.point).z - toCell(b.point).z);
 
   for (const note of ordered) {
-    const projected = project(note.point);
+    const cell = toCell(note.point);
     const region = getRegion(note.point);
-    const radius = (note.id === activeNoteId ? 10 : 7) * projected.perspective;
+    const col = Math.round(cell.x);
+    const row = Math.round(cell.y);
+    const selected = note.id === activeNoteId;
+    const glyph = selected ? "@" : "o";
+    plotCell(buf, col, row, glyph, cell.z + 0.2, selected ? "#ffffff" : region.color);
 
-    ctx.beginPath();
-    ctx.arc(projected.x, projected.y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = region.color;
-    ctx.fill();
-    ctx.lineWidth = note.id === activeNoteId ? 4 : 2;
-    ctx.strokeStyle = note.id === activeNoteId ? "#ffffff" : "rgba(255,255,255,0.72)";
-    ctx.stroke();
-
-    if (note.id === activeNoteId) {
-      drawLabel(note.title, projected.x, projected.y - radius - 18, "#ffffff");
+    if (selected) {
+      plotCell(buf, col - 1, row, "[", cell.z + 0.2, "#ffffff");
+      plotCell(buf, col + 1, row, "]", cell.z + 0.2, "#ffffff");
+      writeText(buf, note.title, cell.x, cell.y - 1.4, "#ffffff", 12);
     }
 
     hitTargets.push({
       id: note.id,
-      x: projected.x,
-      y: projected.y,
-      radius: radius + 8,
+      x: col * cellW + cellW / 2,
+      y: row * cellH + cellH / 2,
+      radius: Math.max(cellW, cellH) * 1.6,
     });
   }
 }
 
-function cuboidPoints(xRange, yRange, zRange) {
-  const [x0, x1] = xRange;
-  const [y0, y1] = yRange;
-  const [z0, z1] = zRange;
-  return {
-    [`${x0}${y0}${z0}`]: { x: x0, y: y0, z: z0 },
-    [`${x1}${y0}${z0}`]: { x: x1, y: y0, z: z0 },
-    [`${x1}${y1}${z0}`]: { x: x1, y: y1, z: z0 },
-    [`${x0}${y1}${z0}`]: { x: x0, y: y1, z: z0 },
-    [`${x0}${y0}${z1}`]: { x: x0, y: y0, z: z1 },
-    [`${x1}${y0}${z1}`]: { x: x1, y: y0, z: z1 },
-    [`${x1}${y1}${z1}`]: { x: x1, y: y1, z: z1 },
-    [`${x0}${y1}${z1}`]: { x: x0, y: y1, z: z1 },
-  };
+function hoverLockEnabled(event) {
+  if (event?.pointerType === "mouse" || event?.pointerType === "pen") return true;
+  return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 }
 
-function cuboidFaces(points) {
-  const keys = Object.keys(points);
-  const lowX = Math.min(...keys.map((key) => Number(key[0])));
-  const highX = Math.max(...keys.map((key) => Number(key[0])));
-  const lowY = Math.min(...keys.map((key) => Number(key[1])));
-  const highY = Math.max(...keys.map((key) => Number(key[1])));
-  const lowZ = Math.min(...keys.map((key) => Number(key[2])));
-  const highZ = Math.max(...keys.map((key) => Number(key[2])));
-
-  return [
-    [points[`${lowX}${lowY}${lowZ}`], points[`${highX}${lowY}${lowZ}`], points[`${highX}${highY}${lowZ}`], points[`${lowX}${highY}${lowZ}`]],
-    [points[`${lowX}${lowY}${highZ}`], points[`${highX}${lowY}${highZ}`], points[`${highX}${highY}${highZ}`], points[`${lowX}${highY}${highZ}`]],
-    [points[`${lowX}${lowY}${lowZ}`], points[`${lowX}${highY}${lowZ}`], points[`${lowX}${highY}${highZ}`], points[`${lowX}${lowY}${highZ}`]],
-    [points[`${highX}${lowY}${lowZ}`], points[`${highX}${highY}${lowZ}`], points[`${highX}${highY}${highZ}`], points[`${highX}${lowY}${highZ}`]],
-    [points[`${lowX}${lowY}${lowZ}`], points[`${highX}${lowY}${lowZ}`], points[`${highX}${lowY}${highZ}`], points[`${lowX}${lowY}${highZ}`]],
-    [points[`${lowX}${highY}${lowZ}`], points[`${highX}${highY}${lowZ}`], points[`${highX}${highY}${highZ}`], points[`${lowX}${highY}${highZ}`]],
-  ];
-}
-
-function averageDepth(points) {
-  return points.reduce((sum, point) => sum + project(point).z, 0) / points.length;
-}
-
-function drawPolygon(points, fill, stroke) {
-  const projected = points.map(project);
-  ctx.beginPath();
-  ctx.moveTo(projected[0].x, projected[0].y);
-  for (const point of projected.slice(1)) {
-    ctx.lineTo(point.x, point.y);
+function isOnShape(clientX, clientY) {
+  if (!lastBuf) return false;
+  const rect = canvas.getBoundingClientRect();
+  const col = Math.floor((clientX - rect.left) / cellW);
+  const row = Math.floor((clientY - rect.top) / cellH);
+  for (let dr = -2; dr <= 2; dr += 1) {
+    for (let dc = -2; dc <= 2; dc += 1) {
+      const ch = lastBuf.chars[row + dr]?.[col + dc];
+      if (ch && ch !== " ") return true;
+    }
   }
-  ctx.closePath();
-  ctx.fillStyle = fill;
-  ctx.fill();
-  ctx.strokeStyle = stroke;
-  ctx.lineWidth = 1;
-  ctx.stroke();
+  return false;
 }
 
-function drawLine(a, b) {
-  const start = project(a);
-  const end = project(b);
-  ctx.beginPath();
-  ctx.moveTo(start.x, start.y);
-  ctx.lineTo(end.x, end.y);
-  ctx.stroke();
+function setRotateLock({ hover, sticky } = {}) {
+  const nextHover = hover == null ? hoverLocked : hover;
+  const nextSticky = sticky == null ? stickyLock : sticky;
+  const nextLocked = Boolean(nextSticky || nextHover);
+  if (nextHover === hoverLocked && nextSticky === stickyLock && nextLocked === rotateLocked) return;
+  hoverLocked = nextHover;
+  stickyLock = nextSticky;
+  rotateLocked = nextLocked;
+  cubePanel.classList.toggle("is-locked", rotateLocked);
+  lockRotate.textContent = rotateLocked ? "[ UNLOCK ]" : "[ LOCK ]";
+  lockRotate.setAttribute("aria-pressed", rotateLocked ? "true" : "false");
+  canvasHint.textContent = rotateLocked
+    ? `Locked. Swipe to rotate. Tap empty space to unlock. Click @ or o to select.`
+    : `Hover or tap the ${shapeNoun()} to lock, then swipe to rotate.`;
+  if (!rotateLocked) {
+    yawVel = 0;
+    pitchVel = 0;
+  }
 }
 
-function drawText(text, x, y, fill) {
-  ctx.fillStyle = fill;
-  ctx.fillText(text, x, y);
+function startSpin() {
+  if (spinFrame) return;
+  const tick = () => {
+    if (dragState || !rotateLocked || (Math.abs(yawVel) < 0.0005 && Math.abs(pitchVel) < 0.0005)) {
+      yawVel = 0;
+      pitchVel = 0;
+      spinFrame = 0;
+      return;
+    }
+    yaw += yawVel;
+    pitch = Math.max(-1.15, Math.min(1.15, pitch + pitchVel));
+    yawVel *= 0.9;
+    pitchVel *= 0.9;
+    drawScene();
+    spinFrame = requestAnimationFrame(tick);
+  };
+  spinFrame = requestAnimationFrame(tick);
 }
 
-function drawLabel(text, x, y, color) {
-  ctx.font = "800 12px Inter, sans-serif";
-  const paddingX = 8;
-  const width = ctx.measureText(text).width + paddingX * 2;
-  const height = 24;
-
-  ctx.fillStyle = "rgba(2, 6, 23, 0.72)";
-  roundRect(x - width / 2, y - height / 2, width, height, 10);
-  ctx.fill();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  drawText(text, x, y + 1, "#eef4ff");
-}
-
-function roundRect(x, y, width, height, radius) {
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.arcTo(x + width, y, x + width, y + height, radius);
-  ctx.arcTo(x + width, y + height, x, y + height, radius);
-  ctx.arcTo(x, y + height, x, y, radius);
-  ctx.arcTo(x, y, x + width, y, radius);
-  ctx.closePath();
-}
-
-function hexToRgb(hex) {
-  const value = hex.replace("#", "");
+function pointerPosition(event) {
+  const rect = canvas.getBoundingClientRect();
   return {
-    r: parseInt(value.slice(0, 2), 16),
-    g: parseInt(value.slice(2, 4), 16),
-    b: parseInt(value.slice(4, 6), 16),
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top,
   };
 }
 
 function openSettingsDialog() {
   renderSettingsForm();
   settingsDialog.showModal();
+}
+
+function hitNoteAt(x, y) {
+  return [...hitTargets].reverse().find((target) => Math.hypot(target.x - x, target.y - y) <= target.radius);
+}
+
+function endPointer(event) {
+  if (dragState && rotateLocked && dragState.moved) {
+    startSpin();
+  }
+
+  if (dragState && !dragState.moved) {
+    const pos = pointerPosition(event);
+    const hit = hitNoteAt(pos.x, pos.y);
+    const onBurger = isOnShape(event.clientX, event.clientY);
+    if (hit) {
+      selectNote(hit.id);
+    } else if (hoverLockEnabled(event)) {
+      setRotateLock({ sticky: false, hover: onBurger });
+    } else {
+      setRotateLock({ sticky: onBurger, hover: false });
+    }
+  }
+
+  if (event.pointerId != null) {
+    try {
+      canvas.releasePointerCapture(event.pointerId);
+    } catch {
+      // already released
+    }
+  }
+  dragState = null;
 }
 
 noteForm.addEventListener("submit", (event) => {
@@ -612,31 +2824,59 @@ resetLabels.addEventListener("click", () => {
   renderSettingsForm();
 });
 resetView.addEventListener("click", () => {
-  yaw = -0.72;
-  pitch = 0.56;
+  yaw = -0.9;
+  pitch = 0.38;
   zoom = 1;
+  yawVel = 0;
+  pitchVel = 0;
   drawScene();
+});
+lockRotate.addEventListener("click", () => {
+  setRotateLock({ sticky: !stickyLock });
 });
 
 canvas.addEventListener("pointerdown", (event) => {
-  canvas.setPointerCapture(event.pointerId);
+  yawVel = 0;
+  pitchVel = 0;
+  const onBurger = isOnShape(event.clientX, event.clientY);
+  if (onBurger) {
+    if (hoverLockEnabled(event)) setRotateLock({ hover: true });
+    else setRotateLock({ sticky: true });
+  }
   dragState = {
     x: event.clientX,
     y: event.clientY,
     moved: false,
   };
+  if (rotateLocked) {
+    event.preventDefault();
+    canvas.setPointerCapture(event.pointerId);
+  }
 });
 
 canvas.addEventListener("pointermove", (event) => {
-  if (!dragState) return;
+  if (!dragState) {
+    if (hoverLockEnabled(event)) {
+      setRotateLock({ hover: isOnShape(event.clientX, event.clientY) });
+    }
+    return;
+  }
+
   const dx = event.clientX - dragState.x;
   const dy = event.clientY - dragState.y;
   if (Math.abs(dx) + Math.abs(dy) > 2) {
     dragState.moved = true;
   }
 
-  yaw -= dx * 0.008;
-  pitch = Math.max(-1.15, Math.min(1.15, pitch + dy * 0.008));
+  if (!rotateLocked) return;
+
+  event.preventDefault();
+  const stepYaw = dx * 0.012;
+  const stepPitch = dy * 0.012;
+  yaw -= stepYaw;
+  pitch = Math.max(-1.15, Math.min(1.15, pitch + stepPitch));
+  yawVel = -stepYaw;
+  pitchVel = stepPitch;
   dragState.x = event.clientX;
   dragState.y = event.clientY;
   drawScene();
@@ -652,26 +2892,20 @@ canvas.addEventListener(
   { passive: false },
 );
 
-canvas.addEventListener("pointerup", (event) => {
-  canvas.releasePointerCapture(event.pointerId);
-  const rect = canvas.getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-
-  if (!dragState?.moved) {
-    const hit = [...hitTargets].reverse().find((target) => Math.hypot(target.x - x, target.y - y) <= target.radius);
-    if (hit) {
-      selectNote(hit.id);
-    }
+canvas.addEventListener("pointerup", endPointer);
+canvas.addEventListener("pointercancel", endPointer);
+canvas.addEventListener("pointerleave", () => {
+  if (!dragState) {
+    setRotateLock({ hover: false });
   }
-
-  dragState = null;
 });
 
 window.addEventListener("resize", setupCanvasSize);
 
 renderSliders();
 renderNotesList();
+renderShapePicker();
+applyShapeCopy();
 updateActiveRegion();
 setupCanvasSize();
 

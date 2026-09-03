@@ -2,22 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>3 Axis Notes Cube</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>3 Axis Notes // ASCII</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <button class="gear-button" id="openSettings" aria-label="Open cube settings">Settings</button>
+    <button class="gear-button" id="openSettings" aria-label="Open plot settings">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
 
     <main class="app-shell">
       <section class="note-panel" aria-labelledby="notePanelTitle">
         <div>
-          <p class="eyebrow">3 Axis Notes</p>
-          <h1 id="notePanelTitle">Plot ideas in a 0-2 cube</h1>
-          <p class="intro">
-            Add notes with scores from 0 to 2. Each point lands inside one of eight
-            labeled low/high sub-cubes.
+          <p class="eyebrow" id="shapeEyebrow">3 Axis Notes // ASCII</p>
+          <h1 id="notePanelTitle">Plot ideas in a 0-2 shape</h1>
+          <p class="intro" id="shapeIntro">
+            Add notes with scores from 0 to 2. Each point lands in the selected
+            shape, inside one of eight labeled low/high octants.
           </p>
+          <div class="shape-picker" id="shapePicker" role="group" aria-label="Plot shape"></div>
         </div>
 
         <form id="noteForm" class="note-form">
@@ -33,7 +38,7 @@
 
           <div id="sliderFields" class="slider-fields"></div>
 
-          <button type="submit" class="primary-button">Add note</button>
+          <button type="submit" class="primary-button">[ ADD NOTE ]</button>
         </form>
 
         <section class="notes-list-wrap" aria-labelledby="notesListTitle">
@@ -42,16 +47,19 @@
         </section>
       </section>
 
-      <section class="cube-panel" aria-label="3D cube visualization">
+      <section class="cube-panel" aria-label="ASCII shape visualization">
         <div class="scene-toolbar">
           <div>
-            <p class="eyebrow">0-2 coordinate space</p>
+            <p class="eyebrow" id="shapeSpace">0-2 plot space</p>
             <h2 id="activeRegion">No note selected</h2>
           </div>
-          <button id="resetView" type="button" class="ghost-button">Reset view</button>
+          <div class="scene-actions">
+            <button id="lockRotate" type="button" class="ghost-button" aria-pressed="false">[ LOCK ]</button>
+            <button id="resetView" type="button" class="ghost-button">[ RESET VIEW ]</button>
+          </div>
         </div>
         <canvas id="cubeCanvas" width="1100" height="900"></canvas>
-        <p class="canvas-hint">Drag to rotate. Scroll to zoom. Click a sphere to select and aim the camera.</p>
+        <p class="canvas-hint" id="canvasHint">Hover or tap the shape to lock, then swipe to rotate.</p>
       </section>
     </main>
 
@@ -59,15 +67,17 @@
       <form id="settingsForm" method="dialog">
         <div class="modal-header">
           <div>
-            <p class="eyebrow">Cube settings</p>
-            <h2>Name axes and sub-cubes</h2>
+            <p class="eyebrow">Plot settings</p>
+            <h2>Name axes and octants</h2>
           </div>
-          <button type="button" id="closeSettings" class="icon-button" aria-label="Close settings">Close</button>
+          <button type="button" id="closeSettings" class="icon-button" aria-label="Close settings">[ CLOSE ]</button>
         </div>
 
         <p class="modal-copy">
-          Sub-cubes are described with each axis name plus low/high. Scores below 1
-          are low; scores from 1 to 2 are high.
+          Octants are described with each axis name plus low/high. Scores below 1
+          are low; scores from 1 to 2 are high. Pick burger, donut, flag, house,
+          cart, drone, truck, roo, wolf, flat, absol, gold, cheetah, lucoa,
+          crystal, mega, fennec, moth, loaf, or storm for the 0-2 mesh.
         </p>
 
         <fieldset class="axis-settings">
@@ -87,13 +97,13 @@
         </fieldset>
 
         <fieldset>
-          <legend>Sub-cube names</legend>
+          <legend>Octant names</legend>
           <div id="regionSettings" class="region-settings"></div>
         </fieldset>
 
         <div class="modal-actions">
-          <button type="button" id="resetLabels" class="ghost-button">Reset labels</button>
-          <button type="submit" class="primary-button">Save settings</button>
+          <button type="button" id="resetLabels" class="ghost-button">[ RESET LABELS ]</button>
+          <button type="submit" class="primary-button">[ SAVE SETTINGS ]</button>
         </div>
       </form>
     </dialog>
