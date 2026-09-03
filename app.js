@@ -194,6 +194,15 @@ const SHAPE_INFO = {
     intro: "Add notes with scores from 0 to 2. Each point lands on the baguette loaf, inside one of eight labeled low/high octants.",
     space: "0-2 loaf space",
   },
+  storm: {
+    id: "storm",
+    label: "Storm",
+    noun: "storm",
+    title: "Plot ideas on a 0-2 storm deity",
+    eyebrow: "3 Axis Notes // ASCII Storm",
+    intro: "Add notes with scores from 0 to 2. Each point lands on the storm deity, inside one of eight labeled low/high octants.",
+    space: "0-2 storm space",
+  },
 };
 
 const defaultSettings = {
@@ -726,6 +735,7 @@ function drawShape(buf) {
     fennec: drawFennec,
     moth: drawMoth,
     loaf: drawLoaf,
+    storm: drawStorm,
   };
   drawers[currentShape()](buf);
 }
@@ -751,6 +761,7 @@ function drawShapeLabels(buf) {
     fennec: drawFennecLabels,
     moth: drawMothLabels,
     loaf: drawLoafLabels,
+    storm: drawStormLabels,
   };
   labels[currentShape()](buf);
 }
@@ -2398,6 +2409,70 @@ function drawLoafLabels(buf) {
     { text: "[crust]", point: { x: 1.7, y: 0.62, z: 1.28 }, color: "#e8b86d" },
     { text: "[score]", point: { x: 1.0, y: 0.78, z: 1.42 }, color: "#6b3319" },
     { text: "[hair]", point: { x: 1.28, y: 1.58, z: 1.2 }, color: "#2a1c16" },
+  ]);
+}
+
+function drawStorm(buf) {
+  const cloud = "#4a5568";
+  const cloudHi = "#a0aec0";
+  const slate = "#718096";
+  const pale = "#e2e8f0";
+  const bolt = "#f6e05e";
+  const boltHi = "#fffde7";
+  const electric = "#63b3ed";
+  const gold = "#d69e2e";
+  const navy = "#1a202c";
+  const gloss = { highlight: pale, bulge: 0.22, uSeg: 22, vSeg: 16, gloss: 0.36, hot: 0.66 };
+  const cloudGloss = { highlight: cloudHi, bulge: 0.28, uSeg: 20, vSeg: 14, gloss: 0.4, hot: 0.7 };
+
+  drawBox(buf, 0.04, 1.96, 0.04, 1.96, 0.06, 0.38, navy, "#");
+  fillEllipsoid(buf, 0.42, 0.42, 0.92, 0.42, 0.28, 0.32, cloud, "O", cloudGloss);
+  fillEllipsoid(buf, 1.0, 0.32, 1.0, 0.55, 0.26, 0.36, cloud, "#", cloudGloss);
+  fillEllipsoid(buf, 1.58, 0.4, 0.94, 0.4, 0.26, 0.3, cloud, "O", cloudGloss);
+  fillEllipsoid(buf, 0.72, 0.58, 1.18, 0.32, 0.2, 0.24, cloudHi, "o", cloudGloss);
+  fillEllipsoid(buf, 1.28, 0.55, 1.16, 0.3, 0.18, 0.22, cloudHi, "o", cloudGloss);
+
+  for (const x of [0.28, 0.52, 0.78, 1.08, 1.38, 1.64]) {
+    drawAsciiLine(buf, { x, y: 0.48, z: 1.22 }, { x: x + 0.04, y: 0.08, z: 1.28 }, electric, 0.03);
+  }
+
+  drawAsciiLine(buf, { x: 1.62, y: 1.72, z: 0.72 }, { x: 1.52, y: 1.38, z: 0.82 }, bolt, 0.06);
+  drawAsciiLine(buf, { x: 1.52, y: 1.38, z: 0.82 }, { x: 1.68, y: 1.12, z: 0.78 }, boltHi, 0.05);
+  drawAsciiLine(buf, { x: 1.68, y: 1.12, z: 0.78 }, { x: 1.48, y: 0.72, z: 0.88 }, bolt, 0.06);
+  drawAsciiLine(buf, { x: 0.22, y: 1.58, z: 0.7 }, { x: 0.38, y: 1.18, z: 0.78 }, bolt, 0.05);
+  drawAsciiLine(buf, { x: 0.38, y: 1.18, z: 0.78 }, { x: 0.18, y: 0.82, z: 0.84 }, boltHi, 0.05);
+
+  fillEllipsoid(buf, 1, 0.92, 1.12, 0.28, 0.32, 0.22, slate, "O", gloss);
+  fillEllipsoid(buf, 1, 1.22, 1.14, 0.22, 0.22, 0.18, slate, "#", gloss);
+  fillEllipsoid(buf, 0.78, 1.08, 1.22, 0.1, 0.18, 0.1, slate, "#", gloss);
+  fillEllipsoid(buf, 1.28, 1.18, 1.2, 0.1, 0.2, 0.1, slate, "#", gloss);
+  fillEllipsoid(buf, 1.48, 1.42, 1.24, 0.08, 0.12, 0.08, slate, "O", gloss);
+  fillEllipsoid(buf, 1.52, 1.52, 1.32, 0.1, 0.16, 0.06, bolt, "*", { highlight: boltHi, bulge: 0.12 });
+  fillEllipsoid(buf, 0.62, 0.88, 1.18, 0.08, 0.16, 0.08, slate, "#", gloss);
+  fillEllipsoid(buf, 1.32, 0.78, 1.16, 0.08, 0.14, 0.08, slate, "#", gloss);
+
+  fillEllipsoid(buf, 1, 1.5, 1.16, 0.16, 0.16, 0.14, pale, "O", gloss);
+  fillDiscAt(buf, 0.94, 1.52, 1.28, 0.035, electric, "*", 5);
+  fillDiscAt(buf, 1.08, 1.52, 1.28, 0.035, electric, "*", 5);
+  fillDiscAt(buf, 1, 1.46, 1.3, 0.025, navy, "*", 4);
+  fillEllipsoid(buf, 1, 1.62, 1.1, 0.2, 0.12, 0.14, pale, "@", gloss);
+  fillEllipsoid(buf, 0.72, 1.48, 1.02, 0.18, 0.16, 0.12, pale, "#", gloss);
+  fillEllipsoid(buf, 1.28, 1.42, 1.0, 0.16, 0.18, 0.12, pale, "#", gloss);
+  fillEllipsoid(buf, 1, 1.74, 1.12, 0.14, 0.08, 0.1, gold, "=");
+  fillEllipsoid(buf, 0.88, 1.82, 1.1, 0.04, 0.1, 0.04, gold, "#");
+  fillEllipsoid(buf, 1.12, 1.82, 1.1, 0.04, 0.1, 0.04, gold, "#");
+  fillDiscAt(buf, 1, 1.78, 1.22, 0.04, boltHi, "*", 6);
+
+  fillEllipsoid(buf, 0.7, 1.18, 0.92, 0.2, 0.28, 0.1, "#2d3748", "#");
+  fillEllipsoid(buf, 1.32, 1.12, 0.9, 0.18, 0.26, 0.1, "#2d3748", "#");
+}
+
+function drawStormLabels(buf) {
+  writeTags(buf, [
+    { text: "[crown]", point: { x: 1, y: 1.88, z: 1.22 }, color: "#d69e2e" },
+    { text: "[bolt]", point: { x: 1.55, y: 1.48, z: 1.38 }, color: "#f6e05e" },
+    { text: "[cloud]", point: { x: 0.4, y: 0.42, z: 1.18 }, color: "#a0aec0" },
+    { text: "[storm]", point: { x: 1.68, y: 1.12, z: 0.7 }, color: "#63b3ed" },
   ]);
 }
 
